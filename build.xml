@@ -187,16 +187,16 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Check if Windows PHP binaries has been downloaded yet                -->
+    <!-- Check if appserver-io/appserver sources has been downloaded yet      -->
     <!-- ==================================================================== -->
-    <target name="check-appserver-binaries-present" description="Check if Windows PHP binaries has been downloaded yet.">
-        <available file="${lib.dir}/appserver-${appserver.version}.zip" property="appserver-binaries.present"/>
+    <target name="check-appserver-sources-present" description="Check if appserver-io/appserver sources has been downloaded yet.">
+        <available file="${lib.dir}/appserver-${appserver.version}.zip" property="appserver-sources.present"/>
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Get Windows PHP binaries package by given version number             -->
+    <!-- Get appserver-io/appserver sourche package by given version number   -->
     <!-- ==================================================================== -->
-    <target name="get-appserver-sources" depends="check-appserver-binaries-present" unless="appserver-binaries.present" description="Get Windows PHP binaries package by given version number.">
+    <target name="get-appserver-sources" depends="check-appserver-sources-present" unless="appserver-sources.present" description="Get appserver-io/appserver sourche package by given version number.">
         <get src="${appserver.download.url}" dest="${lib.dir}/appserver-${appserver.version}.zip"/>
     </target>
 
