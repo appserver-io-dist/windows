@@ -404,9 +404,9 @@
             <arg line="installer -- --install-dir ${target.dir}/appserver/bin"/>
         </exec>
         <!-- extract the sources and copy them to the target directory -->
-        <unzip src="${lib.dir}/appserver-${appserver.version}.zip" dest="${target.dir}/download" />
+        <unzip src="${lib.dir}/appserver-${appserver.version}.zip" dest="${target.dir}" />
         <copy todir="${target.dir}/appserver">
-            <fileset dir="${target.dir}/download" defaultexcludes="false" includes="**/*"/>
+            <fileset dir="${target.dir}/appserver-${appserver.version}" defaultexcludes="false" includes="**/*"/>
         </copy>
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
