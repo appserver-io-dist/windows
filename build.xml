@@ -180,13 +180,6 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Get the latest versions of the default webapps                       -->
-    <!-- ==================================================================== -->
-    <target name="get-default-webapps" description="Get the latest versions of the default webapps">
-        <get src="${webapps.download.baseurl}${webapps.name.example}/${webapps.name.example}-${webapps.version.example}.phar" dest="${basedir}/webapps/${webapps.name.example}.phar" usetimestamp="true"/>
-    </target>
-
-    <!-- ==================================================================== -->
     <!-- Check if appserver-io/appserver sources has been downloaded yet      -->
     <!-- ==================================================================== -->
     <target name="check-appserver-sources-present" description="Check if appserver-io/appserver sources has been downloaded yet.">
@@ -422,11 +415,18 @@
 	</target>
 
     <!-- ==================================================================== -->
+    <!-- Get the latest versions of the default webapps                       -->
+    <!-- ==================================================================== -->
+    <target name="get-default-webapps" description="Get the latest versions of the default webapps">
+        <get src="${webapps.download.baseurl}${webapps.name.example}/${webapps.name.example}-${webapps.version.example}.phar" dest="${target.dir}/${webapps.name.example}.phar" usetimestamp="true"/>
+    </target>
+	
+    <!-- ==================================================================== -->
     <!-- Deploys the appserver.io default webapps                             -->
     <!-- ==================================================================== -->
     <target name="deploy-default-webapps" depends="get-default-webapps" description="Deploys the ApplicationServer default webapps.">
         <copy todir="${target.dir}/appserver/deploy">
-            <fileset dir="${basedir}/webapps">
+            <fileset dir="${target.dir}">
                 <include name="*.phar"/>
             </fileset>
         </copy>
