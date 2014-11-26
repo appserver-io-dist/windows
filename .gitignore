@@ -1,0 +1,9 @@
+.DS_Store
+/.idea
+/.buildpath
+/.project
+/.settings
+/target
+/lib
+/instance-src
+build.properties

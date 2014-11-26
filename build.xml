@@ -1,0 +1,468 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="appserver-io-dist/windows" default="build" basedir=".">
+
+    <!-- ==================================================================== -->
+    <!-- Load the environment variables into our properties                   -->
+    <!-- ==================================================================== -->
+    <property environment="env" />
+    
+    <!-- ==================================================================== -->
+    <!-- Generate a time stamp for further use in build targets               -->
+    <!-- ==================================================================== --> 
+    <tstamp>
+        <format property="time.stamp" pattern="yyyy-MM-dd_HHmmss"/>
+    </tstamp>
+
+    <!-- ==================================================================== -->
+    <!-- Load all property files in the right order                           -->
+    <!-- ==================================================================== -->
+    <property file="${basedir}/build.properties"/>
+    <property file="${user.home}/build.properties"/>
+    <property file="${basedir}/build.default.properties"/>
+    <property file="${basedir}/build.${os.family}.${os.architecture}.properties"/>
+    <property file="${basedir}/build.${os.family}.properties"/>
+	
+    <!-- ==================================================================== -->
+    <!-- Create some basic properties which we need for further processing    -->
+    <!-- The property hub.scp-user is missing on purpose and has to be        -->
+    <!-- provided within the build environment                                -->
+    <!-- ==================================================================== -->
+    <property name="lib.dir" value="${basedir}/lib" />
+    <property name="hub.address" value="appserver.io"/>
+    <property name="custom-lib.dir" value="${basedir}/custom-lib" />
+    <property name="src.dir" value="${basedir}/src" />
+    <property name="target.dir" value="${basedir}/target"/>
+    <property name="hub.snapshot-path" value="/var/www/builds.appserver.io/${os.qualified.path}"/>
+
+    <!-- ==================================================================== -->
+    <!-- Create properties which need other properties coming from different  -->
+    <!-- files as we had problems defining it within properties files         -->
+    <!-- CAUTION, THIS SYNTAX IS DOUBLED IN THE rpmbuild SPECS FILE!          -->
+    <!-- ==================================================================== -->
+    <property name="package.name" value="appserver-${appserver.version}-${appserver.version.suffix}${build.number}.${os.qualified.name}.${os.architecture}.${os.package-extension}"/>
+    <property name="package.specific-dir" value="${target.dir}/"/>
+
+    <!-- ==================================================================== -->
+    <!-- Cleans the directories with the generated source files               -->
+    <!-- ==================================================================== -->
+    <target name="clean" description="Cleans build directory in preparation for new build.">
+        <delete dir="${target.dir}" includeemptydirs="true" quiet="false" verbose="true" failonerror="true"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Prepares all the required directories                                -->
+    <!-- ==================================================================== -->
+    <target name="prepare" depends="clean" description="Prepares all the required directories.">
+        <mkdir dir="${target.dir}" />
+        <mkdir dir="${lib.dir}" />
+        <mkdir dir="${custom-lib.dir}" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if PHP source package has been downloaded yet                  -->
+    <!-- ==================================================================== -->
+    <target name="check-php-src-present" description="Check if PHP Source Package has been downloaded yet.">
+        <available file="${lib.dir}/php-${appserver.php.version}.tar.gz" property="php-src.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if ext-appserver sources has been downloaded yet               -->
+    <!-- ==================================================================== -->
+    <target name="check-ext-appserver-src-present" description="Check if ext appserver sources has been downloaded yet.">
+        <available file="${lib.dir}/ext-appserver-${appserver.ext-appserver.version}.tgz" property="ext-appserver-src.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get PHP source package by given version number                       -->
+    <!-- ==================================================================== -->
+    <target name="get-php-src" depends="check-php-src-present,prepare" unless="php-src.present" description="Get PHP source package by given version number">
+        <get src="http://de1.php.net/get/php-${appserver.php.version}.tar.gz/from/this/mirror" dest="${lib.dir}/php-${appserver.php.version}.tar.gz" usetimestamp="true"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get PECL appserver source package by given version number                -->
+    <!-- ==================================================================== -->
+    <target name="get-ext-appserver-src" depends="check-ext-appserver-src-present" unless="ext-appserver-src.present" description="Get php ext appserver source package by given version number">
+        <get src="https://github.com/appserver-io-php/php-ext-appserver/releases/download/v${appserver.ext-appserver.version}-beta/appserver-${appserver.ext-appserver.version}.tgz" dest="${lib.dir}/ext-appserver-${appserver.ext-appserver.version}.tgz" usetimestamp="true"/>
+    </target>
+	
+    <!-- ==================================================================== -->
+    <!-- Copies any built package to the snapshot hosting server.             -->
+    <!-- ==================================================================== -->
+    <target name="copy-to-hub-windows" description="Copies any built package to the snapshot hosting server.">
+    	<echo message="Now try to upload ${package.specific-dir}${package.name} to snapshot server"/>
+    	<scp file="${package.specific-dir}${package.name}" todir="${hub.scp-user}@${hub.address}:${hub.snapshot-path}" keyfile="${user.home}/.ssh/id_rsa" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows PHP binaries has been downloaded yet   		 	  -->
+    <!-- ==================================================================== -->
+    <target name="check-php-binaries-present" description="Check if Windows PHP binaries has been downloaded yet.">
+        <available file="${lib.dir}/php-${appserver.php.version}-Win32-VC${compiler-version}-${os.architecture}.zip" property="php-binaries.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get Windows PHP binaries package by given version number		      -->
+    <!-- ==================================================================== -->
+    <target name="get-php-binaries" depends="check-php-binaries-present" unless="php-binaries.present" description="Get Windows PHP binaries package by given version number.">
+        <get src="${php.download.url}" dest="${lib.dir}/php-${appserver.php.version}-Win32-VC${compiler-version}-${os.architecture}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows apcu binaries has been downloaded yet   		 	  -->
+    <!-- ==================================================================== -->
+    <target name="check-apcu-binaries-present" description="Check if Windows apcu binaries has been downloaded yet.">
+        <available file="${lib.dir}/php_apcu-${appserver.apcu.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" property="apcu-binaries.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows event binaries has been downloaded yet   		 	  -->
+    <!-- ==================================================================== -->
+    <target name="check-event-binaries-present" description="Check if Windows event binaries has been downloaded yet.">
+        <available file="${lib.dir}/php_event-${appserver.event.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" property="event-binaries.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get Windows apcu binaries package by given version number		      -->
+    <!-- ==================================================================== -->
+    <target name="get-apcu-binaries" depends="check-apcu-binaries-present" unless="apcu-binaries.present" description="Get Windows apcu binaries package by given version number.">
+        <get src="${apcu.download.url}" dest="${lib.dir}/php_apcu-${appserver.apcu.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows pthreads binaries has been downloaded yet   		  -->
+    <!-- ==================================================================== -->
+    <target name="check-pthreads-binaries-present" description="Check if Windows pthreads binaries has been downloaded yet.">
+        <available file="${lib.dir}/php_pthreads-${appserver.pthreads.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" property="pthreads-binaries.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows PHP SDK has been downloaded yet                     -->
+    <!-- ==================================================================== -->
+    <target name="check-php-sdk-present" description="Check if Windows PHP SDK has been downloaded yet.">
+        <available file="${build-workspace.dir}/php-sdk-binary-tools-${php-sdk.timestamp}.zip" property="php-sdk.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows PHP build dependencies have been downloaded yet     -->
+    <!-- ==================================================================== -->
+    <target name="check-php-build-deps-present" description="Check if Windows PHP build dependencies have been downloaded yet.">
+        <available file="${build-workspace.dir}/deps-${appserver.php.major-version}-vc${compiler-version}-${os.architecture}.7z" property="php-build-deps.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get Windows pthreads binaries package by given version number		  -->
+    <!-- ==================================================================== -->
+    <target name="get-pthreads-binaries" depends="check-pthreads-binaries-present" unless="pthreads-binaries.present" description="Get Windows pthreads binaries package by given version number.">
+        <get src="${pthreads.download.url}" dest="${lib.dir}/php_pthreads-${appserver.pthreads.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get Windows event binaries package by given version number		      -->
+    <!-- ==================================================================== -->
+    <target name="get-event-binaries" depends="check-event-binaries-present" unless="event-binaries.present" description="Get Windows event binaries package by given version number.">
+        <get src="${event.download.url}" dest="${lib.dir}/php_event-${appserver.event.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Download the PHP SDK from the official site                          -->
+    <!-- ==================================================================== -->
+    <target name="get-php-sdk" depends="check-php-sdk-present" unless="php-sdk.present" description="Download the PHP SDK from the official site.">
+        <get src="${php-sdk.download.url}" dest="${build-workspace.dir}/php-sdk-binary-tools-${php-sdk.timestamp}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Download the dependencies for building PHP                           -->
+    <!-- ==================================================================== -->
+    <target name="get-php-build-deps" depends="check-php-build-deps-present" unless="php-build-deps.present" description="Download the dependencies for building PHP.">
+        <get src="${php-build-deps.download.url}" dest="${build-workspace.dir}/deps-${appserver.php.major-version}-vc${compiler-version}-${os.architecture}.7z"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get the latest versions of the default webapps                       -->
+    <!-- ==================================================================== -->
+    <target name="get-default-webapps" description="Get the latest versions of the default webapps">
+        <get src="${webapps.download.baseurl}${webapps.name.example}/${webapps.name.example}-${webapps.version.example}.phar" dest="${basedir}/webapps/${webapps.name.example}.phar" usetimestamp="true"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Check if Windows PHP binaries has been downloaded yet                -->
+    <!-- ==================================================================== -->
+    <target name="check-appserver-binaries-present" description="Check if Windows PHP binaries has been downloaded yet.">
+        <available file="${lib.dir}/appserver-${appserver.version}.zip" property="appserver-binaries.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Get Windows PHP binaries package by given version number             -->
+    <!-- ==================================================================== -->
+    <target name="get-appserver-sources" depends="check-appserver-binaries-present" unless="appserver-binaries.present" description="Get Windows PHP binaries package by given version number.">
+        <get src="${appserver.download.url}" dest="${lib.dir}/appserver-${appserver.version}.zip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Untar the PHP source into the development dir                        -->
+    <!-- ==================================================================== -->
+    <target name="prepare-php-src" depends="get-php-src" description="Untar the PHP source into the development dir.">
+        <!-- Untar the php source into the sdk environment -->
+        <untar src="${lib.dir}/php-${appserver.php.version}.tar.gz" dest="${php-buildtree.dir}" compression="gzip"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Unzip the php build dependencies into the development dir            -->
+    <!-- ==================================================================== -->
+    <target name="prepare-php-build-deps" depends="get-php-build-deps,check-7zip-present" description="Unzip the php build dependencies into the development dir.">
+        <!-- Unzip the php build dependencies into the sdk environment -->
+        <exec dir="${build-workspace.dir}" executable="${7zip-cmd.dir}/7z">
+            <arg line="x deps-${appserver.php.major-version}-vc${compiler-version}-${os.architecture}.7z -o${php-buildtree.dir}"/>
+        </exec>
+    </target>
+
+    <!-- =============================================================================== -->
+    <!-- Prepare the appserver extension source by including it in the build environment -->
+    <!-- =============================================================================== -->
+    <target name="prepare-ext-appserver-src" depends="get-ext-appserver-src" description="Prepare the appserver extension source by including it in the build environment.">
+        <!-- Untar the appserver extension source into the sdk environment -->
+        <untar src="${lib.dir}/ext-appserver-${appserver.ext-appserver.version}.tgz" dest="${php-sdk.dir}" compression="gzip"/>
+        <!-- Move the src files into the folder they belong -->
+        <copy todir="${php-buildtree.dir}/php-${appserver.php.version}/ext/appserver" preservelastmodified="true" overwrite="true">
+            <fileset dir="${php-sdk.dir}/appserver-${appserver.ext-appserver.version}">
+                <include name="**/*" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Will check if there is an usable instance of 7zip installed          -->
+    <!-- ==================================================================== -->
+    <target name="check-7zip-present" description="Will check if there is an usable instance of 7zip installed">
+        <!-- Set property if the executable exists -->
+        <available file="${7zip-cmd.dir}/7z.exe" property="7zip.present"/>
+        <!-- Fail if property was not set -->
+        <fail unless="7zip.present"/>
+    </target>
+
+    <!-- ============================================================================= -->
+    <!-- Will check if there is an usable instance of Visual Studio C/C++ installed    -->
+    <!-- ============================================================================= -->
+    <target name="check-vc-present" description="Will check if there is an usable instance of Visual Studio C/C++ installed">
+        <!-- Set property if the executable exists -->
+        <available file="${native-tools-cmd.dir}/vcvarsall.bat" property="vc.present"/>
+        <!-- Fail if property was not set -->
+        <fail unless="vc.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Checks if the appserver extension got built as it should             -->
+    <!-- ==================================================================== -->
+    <target name="check-ext-appserver-built" description="Checks if the appserver extension got built as it should.">
+        <!-- Set property if the dll exists -->
+        <available file="${custom-lib.dir}/php_appserver-${appserver.ext-appserver.version}.dll" property="ext-appserver.present"/>
+        <!-- Fail if property was not set -->
+        <fail unless="ext-appserver.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Checks if php buildtree even exists                                  -->
+    <!-- ==================================================================== -->
+    <target name="check-php-buildtree-present" description="Checks if php buildtree even exists .">
+        <!-- Set property if the buildtree directory exists -->
+        <available file="${php-buildtree.dir}/deps/lib" property="php-buildtree.present"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Will check if the environment has already been prepared.             -->
+    <!-- This is done by checking if a non-empty buildtree exists             -->
+    <!-- ==================================================================== -->
+    <target name="check-php-sdk-prepared" depends="check-php-buildtree-present" if="php-buildtree.present" description="Will check if the environment has already been prepared.">
+        <!-- Define a fileset we can pickup -->
+        <fileset dir="${php-buildtree.dir}/deps/lib" id="php-buildtree.fileset"/>
+        <!-- Set the property if the fileset is not empty -->
+        <pathconvert refid="php-buildtree.fileset"
+                     property="php-sdk.prepared"
+                     setonempty="false"/>
+    </target>
+
+    <!-- ======================================================================= -->
+    <!-- Will expand the properties of the scripts and store them in custom-libs -->
+    <!-- ======================================================================= -->
+    <target name="expand-scripts" description="Will expand the properties of the scripts and store them in custom-libs.">
+        <!-- We have to expand the scripts here, as we are going to use them -->
+        <copy todir="${custom-lib.dir}">
+            <fileset dir="${src.dir}">
+                <include name="scripts/**"/>
+            </fileset>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Prepare Windows PHP SDK as a build environment                       -->
+    <!-- ==================================================================== -->
+    <target name="prepare-php-sdk" depends="check-php-sdk-prepared, expand-scripts" unless="php-sdk.prepared" description="Prepare Windows PHP SDK as a build environment.">
+        <!-- Without Visual Studio installed this makes no sense! -->
+        <antcall target="check-vc-present"/>
+        <!-- Download the PHP SDK archive -->
+        <antcall target="get-php-sdk"/>
+        <!-- Unzip the php sdk into the development environment -->
+        <unzip src="${build-workspace.dir}/php-sdk-binary-tools-${php-sdk.timestamp}.zip" dest="${php-sdk.dir}"/>
+        <!-- Set the build environment vars and create the build tree -->
+        <exec dir="${custom-lib.dir}/scripts" executable="cmd" failonerror="true">
+            <arg value="/C"/>
+            <arg value="prepare_php_sdk.bat"/>
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Will create binaries which cannot be downloaded as .dll. 		      -->
+    <!-- ==================================================================== -->
+    <target name="build-binaries" depends="prepare-php-src, prepare-php-build-deps, prepare-php-sdk, expand-scripts" description="Will create binaries which cannot be downloaded as .dll.">
+        <!-- Prepare the appserve src as we need it -->
+        <antcall target="prepare-ext-appserver-src"/>
+        <!-- Do the thing -->
+        <exec dir="${custom-lib.dir}/scripts" executable="cmd" failonerror="true">
+            <arg value="/C"/>
+            <arg value="build_extensions.bat"/>
+        </exec>
+        <!-- Finally move the created dll files into the "custom-lib" dir where they get picked up -->
+        <copy todir="${custom-lib.dir}" preservelastmodified="true" overwrite="true">
+            <fileset dir="${php-buildtree.dir}/php-${appserver.php.version}/Release_TS">
+                <include name="**/*.dll" />
+            </fileset>
+        </copy>
+        <!-- For some special extensions we have to attach version numbers -->
+        <move file="${custom-lib.dir}/php_appserver.dll" tofile="${custom-lib.dir}/php_appserver-${appserver.ext-appserver.version}.dll"/>
+        <!-- Fail if certain binaries did not get built -->
+        <antcall target="check-ext-appserver-built"/>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Prepares the PHP/PECL Windows binaries 							  -->
+    <!-- ==================================================================== -->
+	<target name="prepare-binaries" depends="prepare" description="Prepares the PHP/PECL Windows binaries.">
+		<!-- download the PHP/PECL binaries if not already available -->
+		<antcall target="get-php-binaries"/>
+        <!-- Build binaries we cannot download ourselves (if not already present) -->
+        <antcall target="build-binaries"/>
+        <!-- Get the apcu binaries -->
+        <antcall target="get-apcu-binaries"/>
+        <!-- antcall target="get-pthreads-binaries"/ -->
+        <antcall target="get-event-binaries"/>
+        <!-- antcall target="get-appserver-sources"/ -->
+        <antcall target="get-appserver-sources"/>
+		<!-- extract the PHP/PECL binaries into the target folder -->
+        <unzip src="${lib.dir}/php-${appserver.php.version}-Win32-VC${compiler-version}-${os.architecture}.zip" dest="${target.dir}/appserver/php"/>
+        <unzip src="${lib.dir}/php_apcu-${appserver.apcu.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" dest="${target.dir}/apcu"/>
+        <!-- unzip src="${lib.dir}/php_pthreads-${appserver.pthreads.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" dest="${target.dir}/pthreads"/ -->
+        <unzip src="${lib.dir}/php_event-${appserver.event.version}-5.5-ts-vc${compiler-version}-${os.architecture}.zip" dest="${target.dir}/event"/>
+		<!-- copy the DLL's to the PHP ext directory -->
+		<copy file="${target.dir}/apcu/php_apcu.dll" todir="${target.dir}/appserver/php/ext"/>
+		<!-- copy file="${target.dir}/pthreads/php_pthreads.dll" todir="${target.dir}/appserver/php/ext"/ -->
+		<!-- copy file="${target.dir}/pthreads/pthreadVC2.dll" todir="${target.dir}/appserver/php"/ -->
+		<copy file="${target.dir}/event/php_event.dll" todir="${target.dir}/appserver/php/ext"/>
+		<!-- copy the appserver DLL to the PHP ext directory -->
+		<copy file="${custom-lib.dir}/php_appserver-${appserver.ext-appserver.version}.dll" tofile="${target.dir}/appserver/php/ext/php_appserver.dll"/>
+		<copy file="${custom-lib.dir}/php_pthreads-${appserver.pthreads.version}.dll" tofile="${target.dir}/appserver/php/ext/php_pthreads.dll"/>
+		<copy file="${custom-lib.dir}/pthreadVC2.dll" tofile="${target.dir}/appserver/php/pthreadVC2.dll"/>
+		
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Prepares the appserver sources                                       -->
+    <!-- ==================================================================== -->
+    <target name="prepare-sources" description="Prepares the appserver sources">
+        <!-- copy runtime sources to target directory -->
+        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}">
+                <include name="**/*" />
+                <exclude name="etc/**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}">
+                <include name="etc/**/*"/>
+            </fileset>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+        <!-- copy windows related files to the target directory -->
+        <copy todir="${target.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**/*"/>
+                <exclude name="appserver-izpack.xml"/>
+            </fileset>
+        </copy>
+        <!-- copy IzPack configuration + .bat files to the target directory -->
+        <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
+            <fileset dir="${src.dir}">
+                <include name="appserver-izpack.xml"/>
+                <include name="appserver/*.bat"/>
+            </fileset>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+        <!-- download and install composer -->
+        <get src="${composer.download.url}" dest="${target.dir}/installer"/>
+        <exec dir="${target.dir}" executable="${target.dir}/appserver/php/php">
+            <arg line="installer -- --install-dir ${target.dir}/appserver/bin"/>
+        </exec>
+        <!-- extract the sources and copy them to the target directory -->
+        <unzip src="${lib.dir}/appserver-${appserver.version}.zip" dest="${target.dir}/download" />
+        <copy todir="${target.dir}/appserver">
+            <fileset dir="${target.dir}/download" defaultexcludes="false" includes="**/*"/>
+        </copy>
+        <!-- install the libraries -->
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
+            <arg line="${target.dir}/appserver/bin/composer.phar install"/>
+        </exec>	
+	</target>
+
+    <!-- ==================================================================== -->
+    <!-- Deploys the appserver.io default webapps                             -->
+    <!-- ==================================================================== -->
+    <target name="deploy-default-webapps" depends="get-default-webapps" description="Deploys the ApplicationServer default webapps.">
+        <copy todir="${target.dir}/appserver/deploy">
+            <fileset dir="${basedir}/webapps">
+                <include name="*.phar"/>
+            </fileset>
+        </copy>
+        <touch file="foo">
+            <fileset dir="${target.dir}/appserver/deploy">
+                <include name="*.phar"/>
+            </fileset>
+            <globmapper from="*.phar" to="${target.dir}/appserver/deploy/*.phar.dodeploy"/>
+        </touch>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Creates the IzPack installer JAR file 					      		  -->
+    <!-- ==================================================================== -->
+	<target name="build" description="Creates the IzPack installer JAR file.">
+		<!-- prepare the PHP/PECL binaries -->
+		<antcall target="prepare-binaries" />
+        <!-- prepare the appserver sources -->
+        <antcall target="prepare-sources" />
+		<!-- deploy the applications -->
+		<antcall target="deploy-default-webapps" />
+		<!-- extend the classpath with the IzPack JAR's -->
+		<path id="build.classpath">
+	        <fileset dir="${izpack.installation.dir}">
+	            <include name="lib/*.jar" />
+	        </fileset>
+	    </path>
+		<!-- declare the IzPack task -->
+	    <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
+		<!-- create the IzPack installer JAR file -->
+        <izpack input="${target.dir}\appserver-izpack.xml"
+                output="${target.dir}\${package.name}"
+                installerType="standard"
+                inheritAll="true"
+                basedir="${target.dir}"
+                izPackDir=" ${izpack.installation.dir}" />
+    </target>
+
+</project>
