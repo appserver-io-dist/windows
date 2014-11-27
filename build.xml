@@ -29,6 +29,7 @@
     <property name="src.dir" value="${basedir}/src" />
     <property name="lib.dir" value="${basedir}/lib" />
     <property name="target.dir" value="${basedir}/target"/>
+    <property name="hub.user" value="build"/>
     <property name="hub.address" value="appserver.io"/>
     <property name="hub.snapshot-path" value="/var/www/builds.appserver.io/${os.qualified.path}"/>
 
@@ -79,34 +80,30 @@
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
     <target name="prepare-runtime" description="Prepares the appserver sources">
-        
+        <!-- download the appserver-io-php/runtime package -->
         <antcall target="get-runtime" />
-    	
-    	<unzip src="${lib.dir}/${runtime.package.name}" dest="${target.dir}"/>
-        
+        <!-- extract the runtime -->
+        <unzip src="${lib.dir}/${runtime.package.name}" dest="${target.dir}"/>
     </target>
 
     <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
     <target name="prepare-sources" description="Prepares the appserver sources">
-    	
-    	<antcall target="get-appserver-sources" />
-    	
-    	<unzip src="${lib.dir}/${appserver.package.name}" dest="${target.dir}" />
-    	
+        <!-- download the appserver-io/appserver package -->
+        <antcall target="get-appserver-sources" />
+        <!-- extract the sources -->
+        <unzip src="${lib.dir}/${appserver.package.name}" dest="${target.dir}" />
         <!-- copy runtime sources to target directory -->
         <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
             <fileset dir="${target.dir}/appserver-${appserver.version}">
                 <include name="**/*" />
             </fileset>
         </copy>
-
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
             <arg line="${target.dir}/appserver/bin/composer.phar install"/>
         </exec> 
-    	
 	</target>
 
     <!-- ==================================================================== -->
@@ -136,20 +133,15 @@
     <!-- ==================================================================== -->
     <!-- Creates the IzPack installer JAR file 					      		  -->
     <!-- ==================================================================== -->
-	<target name="build" description="Creates the IzPack installer JAR file.">
-		
-		<!-- prepare the build environment -->
-		<antcall target="prepare" />
-		
-		<!-- prepare the appserver runtime -->
-		<antcall target="prepare-runtime" />
-		
+    <target name="build" description="Creates the IzPack installer JAR file.">
+        <!-- prepare the build environment -->
+        <antcall target="prepare" />
+        <!-- prepare the appserver runtime -->
+        <antcall target="prepare-runtime" />
         <!-- prepare the appserver sources -->
         <antcall target="prepare-sources" />
-		
-		<!-- deploy the applications -->
-		<antcall target="deploy-default-webapps" />
-
+        <!-- deploy the applications -->
+        <antcall target="deploy-default-webapps" />
         <!-- copy windows related files to the target directory -->
         <copy todir="${target.dir}">
             <fileset dir="${src.dir}">
@@ -157,38 +149,41 @@
                 <exclude name="appserver-izpack.xml"/>
             </fileset>
         </copy>
-        
         <!-- copy runtime sources to target directory -->
         <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
             <fileset dir="${src.dir}/${os.architecture}">
                 <include name="**/*" />
             </fileset>
         </copy>
-		
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
             <filterchain>
                 <expandproperties/>
             </filterchain>
         </copy>
-		
-		<!-- extend the classpath with the IzPack JAR's -->
-		<path id="build.classpath">
-	        <fileset dir="${izpack.installation.dir}">
-	            <include name="lib/*.jar" />
-	        </fileset>
-	    </path>
-		
-		<!-- declare the IzPack task -->
-	    <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
-		
-		<!-- create the IzPack installer JAR file -->
+        <!-- extend the classpath with the IzPack JAR's -->
+        <path id="build.classpath">
+            <fileset dir="${izpack.installation.dir}">
+                <include name="lib/*.jar" />
+            </fileset>
+        </path>
+        <!-- declare the IzPack task -->
+        <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
+        <!-- create the IzPack installer JAR file -->
         <izpack input="${target.dir}\appserver-izpack.xml"
-                output="${target.dir}\${package.name}"
+                output="${package.specific-dir}\${package.name}"
                 installerType="standard"
                 inheritAll="true"
-                basedir="${target.dir}"
+                basedir="${package.specific-dir}"
                 izPackDir=" ${izpack.installation.dir}" />
+    </target>
+    
+    <!-- ==================================================================== -->
+    <!-- Copies any built package to the snapshot hosting server.             -->
+    <!-- ==================================================================== -->
+    <target name="copy-to-hub" description="Copies any built package to the snapshot hosting server.">
+        <echo message="Now try to upload ${package.specific-dir}${package.name} to snapshot server"/>
+        <scp file="${package.specific-dir}${package.name}" todir="${hub.scp-user}@${hub.address}:${hub.snapshot-path}" keyfile="${user.home}/.ssh/id_rsa" />
     </target>
 
 </project>
