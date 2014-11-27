@@ -36,14 +36,6 @@
 			</fileset>
 		</pack>
 
-		<pack name="API/Admin" required="no" preselected="yes">
-			<description>The API and admin webapps</description>
-			<fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
-				<include name="deploy/api.phar*" />
-				<include name="deploy/admin.phar*" />
-			</fileset>
-		</pack>
-
 		<pack name="Example Application" required="no">
 			<description>A example webapp</description>
 			<fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
