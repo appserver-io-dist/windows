@@ -15,9 +15,7 @@
     </tstamp>
     
     <!-- ==================================================================== -->
-    <!-- Create some basic properties which we need for further processing    -->
-    <!-- The property hub.scp-user is missing on purpose and has to be        -->
-    <!-- provided within the build environment                                -->
+    <!-- Create some basic properties which we need for further processing.   -->
     <!-- ==================================================================== -->
     <property name="src.dir" value="${basedir}/src" />
     <property name="lib.dir" value="${basedir}/lib" />
