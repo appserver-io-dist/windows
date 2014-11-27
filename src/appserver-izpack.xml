@@ -11,28 +11,28 @@
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7|izpack.windowsinstall.8" />
     </info>
 
+
+    <guiprefs width="800" height="450" resizable="no">
+        <splash>dist/resources/splash.jpg</splash>
+    </guiprefs>
+
     <locale>
         <langpack iso3="eng" />
     </locale>
 
-    <guiprefs width="800" height="600" resizable="no">
-        <splash>resources/splash.jpg</splash>
-        <modifier key="useHeadingPanel" value="yes" />
-    </guiprefs>
-
     <resources>
-        <res id="InfoPanel.info" src="resources/readme.txt" parse="yes"/>
-        <res id="LicencePanel.licence" src="resources/license.txt"/>
+        <res id="InfoPanel.info" src="dist/resources/readme.txt" parse="yes"/>
+        <res id="LicencePanel.licence" src="dist/resources/license.txt"/>
     </resources>
 
     <panels>
+        <panel classname="InfoPanel" />
         <panel classname="LicencePanel" />
         <panel classname="TargetPanel" />
         <panel classname="PacksPanel" />
         <panel classname="InstallPanel" />
         <panel classname="FinishPanel" />
     </panels>
-
     <packs>
 
         <pack name="Core Files" required="yes">

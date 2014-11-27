@@ -156,27 +156,35 @@
                 <include name="**/*" />
             </fileset>
         </copy>
-        <!-- copy IzPack configuration + .bat files to the target directory -->
-        <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
-            <filterchain>
-                <expandproperties/>
-            </filterchain>
-        </copy>
-        <!-- extend the classpath with the IzPack JAR's -->
-        <path id="build.classpath">
-            <fileset dir="${izpack.installation.dir}">
-                <include name="lib/*.jar" />
-            </fileset>
-        </path>
-        <!-- declare the IzPack task -->
-        <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
-        <!-- create the IzPack installer JAR file -->
-        <izpack input="${target.dir}/appserver-izpack.xml"
-                output="${package.specific-dir}/${package.name}"
-                installerType="standard"
-                inheritAll="true"
-                basedir="${package.specific-dir}"
-                izPackDir=" ${izpack.installation.dir}" />
+        <!-- create the IZPack installer JAR file -->
+        <antcall target="pack" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Creates the IzPack installer JAR file                                -->
+    <!-- ==================================================================== -->
+    <target name="pack" description="Creates the IzPack installer JAR file.">
+           <!-- copy IzPack configuration + .bat files to the target directory -->
+            <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
+                <filterchain>
+                    <expandproperties/>
+                </filterchain>
+            </copy>
+            <!-- extend the classpath with the IzPack JAR's -->
+            <path id="build.classpath">
+                <fileset dir="${izpack.installation.dir}">
+                    <include name="lib/*.jar" />
+               </fileset>
+            </path>
+            <!-- declare the IzPack task -->
+            <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
+            <!-- create the IzPack installer JAR file -->
+            <izpack input="${target.dir}/appserver-izpack.xml"
+                    output="${package.specific-dir}/${package.name}"
+                    installerType="standard"
+                    inheritAll="true"
+                    basedir="${package.specific-dir}"
+                    izPackDir=" ${izpack.installation.dir}" />
     </target>
     
     <!-- ==================================================================== -->
