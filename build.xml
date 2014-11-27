@@ -168,7 +168,7 @@
         <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
         <!-- create the IzPack installer JAR file -->
         <izpack input="${target.dir}/appserver-izpack.xml"
-                output="${package.specific-dir}\${package.name}"
+                output="${package.specific-dir}/${package.name}"
                 installerType="standard"
                 inheritAll="true"
                 basedir="${package.specific-dir}"
