@@ -12,7 +12,7 @@
     </info>
 
 
-    <guiprefs width="800" height="450" resizable="no">
+    <guiprefs width="640" height="360" resizable="no">
         <splash>dist/resources/splash.jpg</splash>
     </guiprefs>
 
