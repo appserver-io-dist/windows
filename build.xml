@@ -150,6 +150,12 @@
                 <include name="**/*" />
             </fileset>
         </copy>
+        <!-- copy install resources to target directory -->
+        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}/dist">
+                <include name="**/*" />
+            </fileset>
+        </copy>
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
             <filterchain>
