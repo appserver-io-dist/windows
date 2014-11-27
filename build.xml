@@ -13,14 +13,7 @@
     <tstamp>
         <format property="time.stamp" pattern="yyyy-MM-dd_HHmmss"/>
     </tstamp>
-
-    <!-- ==================================================================== -->
-    <!-- Load all property files in the right order                           -->
-    <!-- ==================================================================== -->
-    <property file="${basedir}/build.properties"/>
-    <property file="${user.home}/build.properties"/>
-    <property file="${basedir}/build.default.properties"/>
-	
+    
     <!-- ==================================================================== -->
     <!-- Create some basic properties which we need for further processing    -->
     <!-- The property hub.scp-user is missing on purpose and has to be        -->
@@ -29,9 +22,13 @@
     <property name="src.dir" value="${basedir}/src" />
     <property name="lib.dir" value="${basedir}/lib" />
     <property name="target.dir" value="${basedir}/target"/>
-    <property name="hub.user" value="build"/>
-    <property name="hub.address" value="appserver.io"/>
-    <property name="hub.snapshot-path" value="/var/www/builds.appserver.io/${os.qualified.path}"/>
+
+    <!-- ==================================================================== -->
+    <!-- Load all property files in the right order                           -->
+    <!-- ==================================================================== -->
+    <property file="${basedir}/build.properties"/>
+    <property file="${user.home}/build.properties"/>
+    <property file="${basedir}/build.default.properties"/>
 
     <!-- ==================================================================== -->
     <!-- Cleans the directories with the generated source files               -->
