@@ -97,7 +97,7 @@
         </copy>
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${target.dir}/appserver/bin/composer.phar install"/>
+            <arg line="${target.dir}/appserver/bin/composer.phar install --no-dev"/>
         </exec> 
 	</target>
 
