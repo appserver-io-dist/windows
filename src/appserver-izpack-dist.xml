@@ -5,12 +5,11 @@
 
     <info>
         <appname>appserver</appname>
-        <appversion>${appserver.version}</appversion>
+        <appversion>${appserver.src.version}.${build.number}</appversion>
         <appsubpath>appserver</appsubpath>
         <javaversion>1.6</javaversion>
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7|izpack.windowsinstall.8" />
     </info>
-
 
     <guiprefs width="640" height="360" resizable="no">
         <splash>dist/resources/splash.jpg</splash>
@@ -21,7 +20,7 @@
     </locale>
 
     <resources>
-        <res id="InfoPanel.info" src="dist/resources/readme.txt" parse="yes"/>
+        <res id="InfoPanel.info" src="dist/resources/readme.txt" parse="no"/>
         <res id="LicencePanel.licence" src="dist/resources/license.txt"/>
     </resources>
 
@@ -33,27 +32,24 @@
         <panel classname="InstallPanel" />
         <panel classname="FinishPanel" />
     </panels>
-    <packs>
 
+    <packs>
         <pack name="Core Files" required="yes">
             <description>The core files needed to run the server</description>
             <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
                 <exclude name="deploy/**" />
             </fileset>
         </pack>
-
         <pack name="Example Application" required="no">
             <description>A example webapp</description>
             <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
                 <include name="deploy/example.phar*" />
             </fileset>
         </pack>
-
-        <pack name="Microsoft Visual C++ 2010 Redistributable Package (x86)" required="no" preselected="yes">
-            <description>The Microsoft Visual C++ 2010 Redistributable Packe (x86)</description>
-            <executable targetfile="$INSTALL_PATH/lib/vcredist_x86.exe" stage="postinstall" />
+        <pack name="appserver.io ${runtime.version} Runtime Package (${os.architecture})" required="no" preselected="yes">
+            <description>The appserver.io ${runtime.version} Runtime Package (${os.architecture})</description>
+            <executable targetfile="$INSTALL_PATH/lib/${runtime-package.name}" stage="postinstall" type="jar"  keep="true"/>
         </pack>
-
     </packs>
 
 </izpack:installation>

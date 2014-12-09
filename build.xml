@@ -19,6 +19,7 @@
     <!-- ==================================================================== -->
     <property name="src.dir" value="${basedir}/src" />
     <property name="lib.dir" value="${basedir}/lib" />
+    <property name="build.dir" value="${basedir}/build"/>
     <property name="target.dir" value="${basedir}/target"/>
 
     <!-- ==================================================================== -->
@@ -36,6 +37,13 @@
     </target>
 
     <!-- ==================================================================== -->
+    <!-- Cleans the build directory containing the build artefacts            -->
+    <!-- ==================================================================== -->
+    <target name="clean-build" description="Cleans the build directory containing the build artefacts.">
+        <delete dir="${build.dir}" includeemptydirs="true" quiet="false" verbose="true" failonerror="true"/>
+    </target>
+
+    <!-- ==================================================================== -->
     <!-- Prepares all the required directories                                -->
     <!-- ==================================================================== -->
     <target name="prepare" depends="clean" description="Prepares all the required directories.">
@@ -44,17 +52,10 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Check if appserver-io/appserver sources has been downloaded yet      -->
+    <!-- Prepares the build directory containing the build artefacts          -->
     <!-- ==================================================================== -->
-    <target name="check-appserver-sources-present" description="Check if appserver-io/appserver sources has been downloaded yet.">
-        <available file="${lib.dir}/${appserver.package.name}" property="appserver-sources.present"/>
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Get appserver-io/appserver source package by given version number    -->
-    <!-- ==================================================================== -->
-    <target name="get-appserver-sources" depends="check-appserver-sources-present" unless="appserver-sources.present" description="Get appserver-io/appserver sourche package by given version number.">
-        <get src="${appserver.download.url}" dest="${lib.dir}/${appserver.package.name}"/>
+    <target name="prepare-build" depends="clean-build" description="Prepares the build directory containing the build artefacts.">
+        <mkdir dir="${build.dir}" />
     </target>
 
     <!-- ==================================================================== -->
@@ -68,38 +69,101 @@
     <!-- Get appserver-io/runtime package by given version number             -->
     <!-- ==================================================================== -->
     <target name="get-runtime" depends="check-runtime-present" unless="runtime.present" description="Get appserver-io/runtime package by given version number.">
-        <get src="${runtime.download.url}" dest="${lib.dir}/${runtime.package.name}"/>
+        <get src="${runtime.download.url}" dest="${target.dir}/${runtime.package.name}"/>
     </target>
 	
     <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
-    <target name="prepare-runtime" description="Prepares the appserver sources">
+    <target name="prepare-runtime" depends="prepare" description="Prepares the appserver sources">
         <!-- download the appserver-io-php/runtime package -->
         <antcall target="get-runtime" />
         <!-- extract the runtime -->
-        <unzip src="${lib.dir}/${runtime.package.name}" dest="${target.dir}"/>
+        <unzip src="${target.dir}/${runtime.package.name}" dest="${target.dir}"/>
+        <!-- copy runtime sources to target directory -->
+        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}/${os.architecture}">
+                <include name="**/*" />
+            </fileset>
+        </copy>
+        <!-- copy install resources to target directory -->
+        <copy todir="${target.dir}" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}">
+                <include name="runtime/**/*" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Creates the IzPack installer JAR file for the runtime                -->
+    <!-- ==================================================================== -->
+    <target name="pack-runtime" depends="prepare-runtime" description="Creates the IzPack installer JAR file for the runtime.">
+        <!-- prepare the package name -->
+        <property 
+            name="runtime-package.name" 
+            value="${build.name.prefix}runtime-${runtime.version}.${build.number}.${os.family}.${os.architecture}.${build.name.ext}" />
+        <!-- copy IzPack configuration + .bat files to the target directory -->
+        <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-runtime.xml">
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+        <!-- extend the classpath with the IzPack JAR's -->
+        <path id="build.classpath">
+            <fileset dir="${izpack.installation.dir}">
+                <include name="lib/*.jar" />
+           </fileset>
+        </path>
+        <!-- declare the IzPack task -->
+        <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
+        <!-- create the IzPack installer JAR file -->
+        <izpack input="${target.dir}/appserver-izpack-runtime.xml"
+                output="${build.dir}/${runtime-package.name}"
+                installerType="standard"
+                inheritAll="true"
+                basedir="${target.dir}"
+                izPackDir=" ${izpack.installation.dir}" />
     </target>
 
     <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
-    <target name="prepare-sources" description="Prepares the appserver sources">
-        <!-- download the appserver-io/appserver package -->
-        <antcall target="get-appserver-sources" />
-        <!-- extract the sources -->
-        <unzip src="${lib.dir}/${appserver.package.name}" dest="${target.dir}" />
-        <!-- copy runtime sources to target directory -->
-        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
-            <fileset dir="${target.dir}/appserver-${appserver.version}">
-                <include name="**/*" />
+    <target name="prepare-sources" depends="pack-runtime" description="Prepares the appserver sources">
+        <exec dir="${target.dir}" executable="git">
+            <arg line="clone https://${github.oauth.token}:x-oauth-basic@github.com/${appserver.src.repo} appserver-src" />
+        </exec>
+        <!-- get lastest tag version -->
+        <exec dir="${target.dir}/appserver-src" executable="git" outputProperty="appserver.src.git.tag">
+            <arg line="describe --abbrev=0 --tags" />
+        </exec>
+        <property name="appserver.src.version" value="${appserver.src.git.tag}" />
+        <!-- checkout lastest tag version -->
+        <echo message="Checkout lastest tag version ${appserver.src.version}" />
+        <exec dir="${target.dir}/appserver-src" executable="git">
+            <arg line="checkout -q ${appserver.src.version}" />
+        </exec>
+        <!-- remove git db files -->
+        <delete dir="${target.dir}/appserver-src/.git" includeemptydirs="true" />
+        <!-- install the libraries -->
+        <exec dir="${target.dir}/appserver-src" executable="${target.dir}/appserver/php/php">
+            <arg line="${target.dir}/appserver/php/composer.phar install --no-dev"/>
+        </exec>
+        <!-- deploy the applications -->
+        <antcall target="deploy-default-webapps" />
+        <!-- copy install resources to target directory -->
+        <copy todir="${target.dir}" preservelastmodified="true" overwrite="true">
+            <fileset dir="${src.dir}">
+                <include name="dist/**/*" />
             </fileset>
         </copy>
-        <!-- install the libraries -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${target.dir}/appserver/bin/composer.phar install --no-dev"/>
-        </exec> 
-	</target>
+        <!-- copy runtime package to the build directory -->
+        <copy file="${build.dir}/${runtime-package.name}" todir="${target.dir}/appserver-src/lib" preservelastmodified="true" overwrite="true"/>
+        <!-- delete the runtime files and move the sources to the proper directory -->
+        <delete dir="${target.dir}/appserver" />
+        <move todir="${target.dir}/appserver">
+            <fileset dir="${target.dir}/appserver-src" />
+        </move>
+    </target>
 
     <!-- ==================================================================== -->
     <!-- Get the latest versions of the default webapps                       -->
@@ -107,7 +171,7 @@
     <target name="get-default-webapps" description="Get the latest versions of the default webapps">
         <get src="${webapps.download.baseurl}${webapps.name.example}/${webapps.name.example}-${webapps.version.example}.phar" dest="${target.dir}/${webapps.name.example}.phar" usetimestamp="true"/>
     </target>
-	
+
     <!-- ==================================================================== -->
     <!-- Deploys the appserver.io default webapps                             -->
     <!-- ==================================================================== -->
@@ -126,73 +190,54 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Creates the IzPack installer JAR file 					      		  -->
+    <!-- Creates the IzPack installer JAR file for the distribution           -->
     <!-- ==================================================================== -->
-    <target name="build" description="Creates the IzPack installer JAR file.">
-        <!-- prepare the build environment -->
-        <antcall target="prepare" />
-        <!-- prepare the appserver runtime -->
-        <antcall target="prepare-runtime" />
-        <!-- prepare the appserver sources -->
-        <antcall target="prepare-sources" />
-        <!-- deploy the applications -->
-        <antcall target="deploy-default-webapps" />
-        <!-- copy windows related files to the target directory -->
-        <copy todir="${target.dir}">
-            <fileset dir="${src.dir}">
-                <include name="**/*"/>
-                <exclude name="appserver-izpack.xml"/>
-            </fileset>
+    <target name="pack-dist" depends="prepare-sources" description="Creates the IzPack installer JAR file for the distribution.">
+        <!-- prepare the package name -->
+        <property 
+            name="dist-package.name" 
+            value="${build.name.prefix}dist-${appserver.src.version}.${build.number}.${os.family}.${os.architecture}.${build.name.ext}" />
+        <!-- copy IzPack configuration + .bat files to the target directory -->
+        <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-dist.xml">
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
         </copy>
-        <!-- copy runtime sources to target directory -->
-        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
-            <fileset dir="${src.dir}/${os.architecture}">
-                <include name="**/*" />
-            </fileset>
-        </copy>
-        <!-- copy install resources to target directory -->
-        <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
-            <fileset dir="${src.dir}/dist">
-                <include name="**/*" />
-            </fileset>
-        </copy>
-        <!-- create the IZPack installer JAR file -->
-        <antcall target="pack" />
+        <!-- extend the classpath with the IzPack JAR's -->
+        <path id="build.classpath">
+            <fileset dir="${izpack.installation.dir}">
+                <include name="lib/*.jar" />
+           </fileset>
+        </path>
+        <!-- declare the IzPack task -->
+        <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
+        <!-- create the IzPack installer JAR file -->
+        <izpack input="${target.dir}/appserver-izpack-dist.xml"
+                output="${build.dir}/${dist-package.name}"
+                installerType="standard"
+                inheritAll="true"
+                basedir="${target.dir}"
+                izPackDir=" ${izpack.installation.dir}" />
     </target>
 
     <!-- ==================================================================== -->
     <!-- Creates the IzPack installer JAR file                                -->
     <!-- ==================================================================== -->
-    <target name="pack" description="Creates the IzPack installer JAR file.">
-           <!-- copy IzPack configuration + .bat files to the target directory -->
-            <copy todir="${target.dir}" file="${src.dir}/appserver-izpack.xml">
-                <filterchain>
-                    <expandproperties/>
-                </filterchain>
-            </copy>
-            <!-- extend the classpath with the IzPack JAR's -->
-            <path id="build.classpath">
-                <fileset dir="${izpack.installation.dir}">
-                    <include name="lib/*.jar" />
-               </fileset>
-            </path>
-            <!-- declare the IzPack task -->
-            <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
-            <!-- create the IzPack installer JAR file -->
-            <izpack input="${target.dir}/appserver-izpack.xml"
-                    output="${package.specific-dir}/${package.name}"
-                    installerType="standard"
-                    inheritAll="true"
-                    basedir="${package.specific-dir}"
-                    izPackDir=" ${izpack.installation.dir}" />
+    <target name="build" description="Creates the IzPack installer JAR file.">
+        <antcall target="prepare-build" />
+        <antcall target="pack-dist"/>
     </target>
-    
+
     <!-- ==================================================================== -->
     <!-- Copies any built package to the snapshot hosting server.             -->
     <!-- ==================================================================== -->
-    <target name="copy-to-hub" description="Copies any built package to the snapshot hosting server.">
-        <echo message="Now try to upload ${package.specific-dir}/${package.name} to snapshot server"/>
-        <scp file="${package.specific-dir}/${package.name}" todir="${hub.scp-user}@${hub.address}:${hub.snapshot-path}" keyfile="${user.home}/.ssh/id_rsa" />
+    <target name="upload-builds" description="Copies any built package to the snapshot hosting server.">
+        <echo message="Now try to upload build artefacts to snapshot server"/>
+        <scp todir="${build.server.user}@${build.server.host}:${build.server.upload-path}" keyfile="${user.home}/.ssh/id_rsa" >
+            <fileset file="${build.dir}" >
+                <include name="*.${build.name.ext}"/>
+            </fileset>
+        </scp>
     </target>
 
 </project>
