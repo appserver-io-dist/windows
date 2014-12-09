@@ -176,16 +176,16 @@
     <!-- Deploys the appserver.io default webapps                             -->
     <!-- ==================================================================== -->
     <target name="deploy-default-webapps" depends="get-default-webapps" description="Deploys the ApplicationServer default webapps.">
-        <copy todir="${target.dir}/appserver/deploy">
+        <copy todir="${target.dir}/appserver-src/deploy">
             <fileset dir="${target.dir}">
                 <include name="*.phar"/>
             </fileset>
         </copy>
         <touch file="foo">
-            <fileset dir="${target.dir}/appserver/deploy">
+            <fileset dir="${target.dir}/appserver-src/deploy">
                 <include name="*.phar"/>
             </fileset>
-            <globmapper from="*.phar" to="${target.dir}/appserver/deploy/*.phar.dodeploy"/>
+            <globmapper from="*.phar" to="${target.dir}/appserver-src/deploy/*.phar.dodeploy"/>
         </touch>
     </target>
 
