@@ -101,7 +101,7 @@
         <!-- prepare the package name -->
         <property 
             name="runtime-package.name" 
-            value="${build.name.prefix}runtime-${runtime.version}.${build.number}.${os.family}.${os.architecture}.${build.name.ext}" />
+            value="${build.name.prefix}runtime-${runtime.version}.${os.family}.${os.architecture}.${build.name.ext}" />
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-runtime.xml">
             <filterchain>
