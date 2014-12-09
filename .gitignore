@@ -3,6 +3,7 @@
 /.buildpath
 /.project
 /.settings
+/build
 /target
 /instance-src
 build.properties
