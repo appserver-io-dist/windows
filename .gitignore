@@ -4,6 +4,5 @@
 /.project
 /.settings
 /target
-/lib
 /instance-src
 build.properties
