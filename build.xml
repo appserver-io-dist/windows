@@ -234,7 +234,7 @@
     <target name="upload-builds" description="Copies any built package to the snapshot hosting server.">
         <echo message="Now try to upload build artefacts to snapshot server"/>
         <scp todir="${build.server.user}@${build.server.host}:${build.server.upload-path}" keyfile="${user.home}/.ssh/id_rsa" >
-            <fileset file="${build.dir}" >
+            <fileset dir="${build.dir}" >
                 <include name="*.${build.name.ext}"/>
             </fileset>
         </scp>
