@@ -148,7 +148,7 @@
         <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${appserver.src.version}.${build.number}" />
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --quiet --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
+            <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
         <antcall target="deploy-default-webapps" />
