@@ -145,9 +145,9 @@
         <!-- remove git db files -->
         <delete dir="${target.dir}/appserver-src/.git" includeemptydirs="true" /> 
         <!-- create the file with the version number -->
-        <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${appserver.src.version}.${build.number}" />
+        <echo file="${target.dir}/appserver-src/etc/appserver/.release-version" message="${appserver.src.version}.${build.number}" />
         <!-- install the libraries -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
+        <exec dir="${target.dir}/appserver-src" executable="${target.dir}/appserver/php/php">
             <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
