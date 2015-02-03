@@ -165,8 +165,14 @@
         <move todir="${target.dir}/appserver">
             <fileset dir="${target.dir}/appserver-src" />
         </move>
+        <!-- move the .bat files -->
+        <move todir="${target.dir}/appserver">
+            <fileset dir="${target.dir}/dist">
+                <include name="appserver*.bat"/>
+            </fileset>
+        </move>
     </target>
-
+	
     <!-- ==================================================================== -->
     <!-- Get the latest versions of the default webapps                       -->
     <!-- ==================================================================== -->
