@@ -131,6 +131,12 @@
             architecture="${os.architecture}" 
             architectureSeparator="_" 
             extension="${build.name.ext}" />
+        <!-- create version name -->
+        <create-version-name 
+            tag="${runtime.version}"
+            build="${runtime.build}" 
+            suffixSeparator="+" 
+            outputProperty="RUNTIME_VERSION_NAME" />
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-runtime.xml">
             <filterchain>
@@ -194,7 +200,7 @@
             </fileset>
         </copy>
         <!-- copy runtime package to the build directory -->
-        <copy file="${build.dir}/${runtime-package.name}" todir="${target.dir}/appserver-src/lib" preservelastmodified="true" overwrite="true"/>
+        <copy file="${build.dir}/${RUNTIME_DIST_PACKAGE_NAME}" todir="${target.dir}/appserver-src/lib" preservelastmodified="true" overwrite="true"/>
         <!-- delete the runtime files and move the sources to the proper directory -->
         <delete dir="${target.dir}/appserver" />
         <move todir="${target.dir}/appserver">
