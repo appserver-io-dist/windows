@@ -62,24 +62,46 @@
     <!-- Check if appserver-io-php/runtime has been downloaded yet            -->
     <!-- ==================================================================== -->
     <target name="check-runtime-present" description="Check if appserver-io-php/runtime has been downloaded yet.">
-        <available file="${lib.dir}/${runtime.package.name}" property="runtime.present"/>
+        <!-- create runtime source package name -->
+        <create-package-name 
+            tag="${runtime.version}"
+            outputProperty="RUNTIME_SOURCE_PACKAGE_NAME"
+            prefix="${build.name.prefix}runtime" 
+            build="${runtime.build}" 
+            suffixSeparator="+" 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="${runtime.package-extension}" />
+        <available file="${lib.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}" property="runtime.present"/>
     </target>
 
     <!-- ==================================================================== -->
     <!-- Get appserver-io/runtime package by given version number             -->
     <!-- ==================================================================== -->
     <target name="get-runtime" depends="check-runtime-present" unless="runtime.present" description="Get appserver-io/runtime package by given version number.">
-        <get src="${runtime.download.url}" dest="${target.dir}/${runtime.package.name}"/>
+        <get src="${runtime.download.url}/${RUNTIME_SOURCE_PACKAGE_NAME}" dest="${target.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}"/>
     </target>
 	
     <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
     <target name="prepare-runtime" depends="prepare" description="Prepares the appserver sources">
+        <!-- create runtime source package name -->
+        <create-package-name 
+            tag="${runtime.version}"
+            outputProperty="RUNTIME_SOURCE_PACKAGE_NAME"
+            prefix="${build.name.prefix}runtime" 
+            build="${runtime.build}" 
+            suffixSeparator="+" 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="${runtime.package-extension}" />
         <!-- download the appserver-io-php/runtime package -->
         <antcall target="get-runtime" />
         <!-- extract the runtime -->
-        <unzip src="${target.dir}/${runtime.package.name}" dest="${target.dir}"/>
+        <unzip src="${target.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}" dest="${target.dir}"/>
         <!-- copy runtime sources to target directory -->
         <copy todir="${target.dir}/appserver" preservelastmodified="true" overwrite="true">
             <fileset dir="${src.dir}/${os.architecture}">
@@ -98,10 +120,17 @@
     <!-- Creates the IzPack installer JAR file for the runtime                -->
     <!-- ==================================================================== -->
     <target name="pack-runtime" depends="prepare-runtime" description="Creates the IzPack installer JAR file for the runtime.">
-        <!-- prepare the package name -->
-        <property 
-            name="runtime-package.name" 
-            value="${build.name.prefix}runtime-${runtime.version}.${os.family}.${os.architecture}.${build.name.ext}" />
+        <!-- create runtime source package name -->
+        <create-package-name 
+            tag="${runtime.version}"
+            outputProperty="RUNTIME_DIST_PACKAGE_NAME"
+            prefix="${build.name.prefix}runtime" 
+            build="${runtime.build}" 
+            suffixSeparator="+" 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="${build.name.ext}" />
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-runtime.xml">
             <filterchain>
@@ -118,7 +147,7 @@
         <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
         <!-- create the IzPack installer JAR file -->
         <izpack input="${target.dir}/appserver-izpack-runtime.xml"
-                output="${build.dir}/${runtime-package.name}"
+                output="${build.dir}/${RUNTIME_DIST_PACKAGE_NAME}"
                 installerType="standard"
                 inheritAll="true"
                 basedir="${target.dir}"
@@ -143,9 +172,15 @@
             <arg line="checkout -q ${appserver.src.version}" />
         </exec>
         <!-- remove git db files -->
-        <delete dir="${target.dir}/appserver-src/.git" includeemptydirs="true" /> 
+        <delete dir="${target.dir}/appserver-src/.git" includeemptydirs="true" />
+        <!-- create version name -->
+        <create-version-name 
+            tag="${appserver.src.version}"
+            build="${build.number}" 
+            suffixSeparator="+" 
+            outputProperty="VERSION_NAME" />
         <!-- create the file with the version number -->
-        <echo file="${target.dir}/appserver-src/etc/appserver/.release-version" message="${appserver.src.version}.${build.number}" />
+        <echo file="${target.dir}/appserver-src/etc/appserver/.release-version" message="${VERSION_NAME}" />
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver-src" executable="${target.dir}/appserver/php/php">
             <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
@@ -201,10 +236,17 @@
     <!-- Creates the IzPack installer JAR file for the distribution           -->
     <!-- ==================================================================== -->
     <target name="pack-dist" depends="prepare-sources" description="Creates the IzPack installer JAR file for the distribution.">
-        <!-- prepare the package name -->
-        <property 
-            name="dist-package.name" 
-            value="${build.name.prefix}dist-${appserver.src.version}.${build.number}.${os.family}.${os.architecture}.${build.name.ext}" />
+        <!-- create runtime source package name -->
+        <create-package-name 
+            tag="${appserver.src.version}"
+            outputProperty="DIST_PACKAGE_NAME"
+            prefix="${build.name.prefix}dist" 
+            build="${build.number}" 
+            suffixSeparator="+" 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="${build.name.ext}" />
         <!-- copy IzPack configuration + .bat files to the target directory -->
         <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-dist.xml">
             <filterchain>
@@ -221,7 +263,7 @@
         <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
         <!-- create the IzPack installer JAR file -->
         <izpack input="${target.dir}/appserver-izpack-dist.xml"
-                output="${build.dir}/${dist-package.name}"
+                output="${build.dir}/${DIST_PACKAGE_NAME}"
                 installerType="standard"
                 inheritAll="true"
                 basedir="${target.dir}"
@@ -247,5 +289,126 @@
             </fileset>
         </scp>
     </target>
+    
+    <!-- ==================================================================== -->
+    <!-- Extracts version and suffix from a tag                               -->
+    <!-- ==================================================================== -->
+    <scriptdef name="create-version-name" language="javascript">
+        <attribute name="tag" />
+        <attribute name="build" />
+        <attribute name="outputproperty" />
+        <attribute name="suffixseparator" />
+        <![CDATA[
+
+        // load the attributes
+        var tag = attributes.get("tag");
+        var build = attributes.get("build");
+        var outputProperty= attributes.get("outputproperty");
+        var suffixSeparator = attributes.get("suffixseparator");
+        
+        // declare version and version suffix
+        var versionName = '';
+        var resultSuffix = '';
+        var resultVersion = tag;
+
+        // try to extract the version suffix, e. g. beta1
+        if (tag.indexOf("-") !== -1) {
+
+           // try to load the suffix
+           resultVersion = tag.substring(0, tag.indexOf("-"));
+           resultSuffix = tag.replace(resultVersion + "-", "");
+        }
+        
+        // initialize the version name
+        versionName = resultVersion;
+
+        // append the build number
+        if (build != "") {
+            versionName += "-" + build;
+        }
+
+        // append the suffix if available
+        if (resultSuffix != "") {
+            versionName += suffixSeparator + resultSuffix;
+        }
+
+        // store version in the output properties
+        project.setProperty(outputProperty, versionName);
+    ]]>
+    </scriptdef>
+
+    <!-- ==================================================================== -->
+    <!-- Will create a Windows specific package name                          -->
+    <!-- ==================================================================== -->
+    <scriptdef name="create-package-name" language="javascript">
+        <attribute name="tag" />
+        <attribute name="build" />
+        <attribute name="prefix" />
+        <attribute name="extension" />
+        <attribute name="architecture" />
+        <attribute name="outputproperty" />
+        <attribute name="suffixseparator" />
+        <attribute name="versionseparator" />
+        <attribute name="architectureseparator" />
+        <![CDATA[
+
+        // declare the package name
+        var packageName = '';
+
+        // load the attributes
+        var tag = attributes.get("tag");
+        var build = attributes.get("build");
+        var prefix = attributes.get("prefix");
+        var extension = attributes.get("extension");
+        var architecture = attributes.get("architecture");
+        var outputProperty = attributes.get("outputproperty");
+        var suffixSeparator = attributes.get("suffixseparator");
+        var versionSeparator = attributes.get("versionseparator");
+        var architectureSeparator = attributes.get("architectureseparator");
+
+        // declare version and version suffix
+        var resultVersion = tag;
+        var resultSuffix = '';
+        
+        // the package name ALWAYS starts with the prefix
+        packageName = prefix;
+
+        // try to extract the version suffix, e. g. beta1
+        if (tag.indexOf("-") !== -1) {
+
+           // try to load the suffix
+           resultVersion = tag.substring(0, tag.indexOf("-"));
+           resultSuffix = tag.replace(resultVersion + "-", "");
+        }
+
+        // append the extracted version
+        if (resultVersion != "") {
+            packageName += versionSeparator + resultVersion;
+        }
+
+        // append the build number
+        if (build != "") {
+            packageName += "-" + build;
+        }
+
+        // append the OS specific suffix separator
+        if (resultSuffix != "") {
+            packageName += suffixSeparator + resultSuffix;
+        }
+
+        // append the architecture
+        if (architecture != "") {
+            packageName += architectureSeparator + architecture;
+        }
+
+        // append the package extension
+        if (extension != "") {
+            packageName += "." + extension;
+        }
+        
+        // store the result in output property
+        project.setProperty(outputProperty, packageName);
+    ]]>
+    </scriptdef>
 
 </project>
