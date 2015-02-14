@@ -5,7 +5,7 @@
 
     <info>
         <appname>appserver</appname>
-        <appversion>${appserver.src.version}.${build.number}</appversion>
+        <appversion>${VERSION_NAME}</appversion>
         <appsubpath>appserver</appsubpath>
         <javaversion>1.6</javaversion>
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7|izpack.windowsinstall.8" />

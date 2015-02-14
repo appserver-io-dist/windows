@@ -5,7 +5,7 @@
 
     <info>
         <appname>runtime</appname>
-        <appversion>${runtime.version}</appversion>
+        <appversion>${RUNTIME_VERSION_NAME}</appversion>
         <appsubpath>appserver</appsubpath>
         <javaversion>1.6</javaversion>
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7|izpack.windowsinstall.8" />
