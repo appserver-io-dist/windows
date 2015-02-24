@@ -230,12 +230,6 @@
                 <include name="*.phar"/>
             </fileset>
         </copy>
-        <touch file="foo">
-            <fileset dir="${target.dir}/appserver-src/deploy">
-                <include name="*.phar"/>
-            </fileset>
-            <globmapper from="*.phar" to="${target.dir}/appserver-src/deploy/*.phar.dodeploy"/>
-        </touch>
     </target>
 
     <!-- ==================================================================== -->
