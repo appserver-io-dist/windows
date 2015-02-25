@@ -38,6 +38,11 @@
             <description>The core files needed to run the server</description>
             <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
                 <exclude name="deploy/**" />
+                <exclude name="scripts/**" />
+                <exclude name="etc/**" />
+            </fileset>
+            <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="askfalse">
+                <include name="etc/**" />
             </fileset>
         </pack>
         <pack name="Example Application" required="no">
@@ -48,7 +53,17 @@
         </pack>
         <pack name="appserver.io ${runtime.version} Runtime Package (${os.architecture})" required="no" preselected="yes">
             <description>The appserver.io ${runtime.version} Runtime Package (${os.architecture})</description>
-            <executable targetfile="$INSTALL_PATH/lib/${RUNTIME_DIST_PACKAGE_NAME}" stage="postinstall" type="jar"  keep="true"/>
+            <executable targetfile="$INSTALL_PATH/lib/${RUNTIME_DIST_PACKAGE_NAME}" stage="postinstall" type="jar" keep="true"/>
+        </pack>
+        <pack name="Setup Scripts" required="yes">
+            <description>Setup Scripts</description>
+            <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
+                <include name="scripts/**" />
+            </fileset>
+            <!-- parse the .BAT file and replace variables like $INSTALL_PATH -->
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/setup.bat" />
+            <!-- execute the .BAT file -->
+            <executable os="windows" targetfile="$INSTALL_PATH/scripts/setup.bat" stage="postinstall" keep="true"/>
         </pack>
     </packs>
 
