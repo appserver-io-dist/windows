@@ -21,6 +21,7 @@
     <property name="lib.dir" value="${basedir}/lib" />
     <property name="build.dir" value="${basedir}/build"/>
     <property name="target.dir" value="${basedir}/target"/>
+	<property name="launch4j.dir" location="C:\Program Files\Launch4j" />
 
     <!-- ==================================================================== -->
     <!-- Load all property files in the right order                           -->
@@ -29,6 +30,10 @@
     <property file="${user.home}/build.properties"/>
     <property file="${basedir}/build.default.properties"/>
 
+    <taskdef name="launch4j"
+        classname="net.sf.launch4j.ant.Launch4jTask"
+        classpath="${launch4j.dir}/launch4j.jar:${launch4j.dir}/lib/xstream.jar" />
+	
     <!-- ==================================================================== -->
     <!-- Cleans the directories with the generated source files               -->
     <!-- ==================================================================== -->
@@ -237,7 +242,7 @@
     <!-- Creates the IzPack installer JAR file for the distribution           -->
     <!-- ==================================================================== -->
     <target name="pack-dist" depends="prepare-sources" description="Creates the IzPack installer JAR file for the distribution.">
-        <!-- create runtime source package name -->
+        <!-- create distribution package name -->
         <create-package-name 
             tag="${appserver.src.version}"
             outputProperty="DIST_PACKAGE_NAME"
@@ -272,11 +277,75 @@
     </target>
 
     <!-- ==================================================================== -->
+    <!-- Prepares the environment to create a binary version of the IzPack    -->
+    <!-- installer JAR file                                                   -->
+    <!-- ==================================================================== -->
+    <target name="prepare-exe" depends="pack-dist" description="Prepares the environment to create a binary version of the IzPack installer JAR file">
+        <!-- clear the target directory -->
+        <antcall target="prepare" />
+        <!-- extract the Java runtime environment JRE -->
+        <untar compression="gzip" src="${lib.dir}/${jre.filename}" dest="${target.dir}/dist" />
+        <move todir="${target.dir}/dist/jre">
+            <fileset dir="${target.dir}/dist/${jre.version}" />
+        </move>
+        <!-- extract the 7z binaries -->
+        <unzip src="${lib.dir}/7za920.zip" dest="${target.dir}" />
+        <!-- copy the JAR file with the distribution -->
+        <copy todir="${target.dir}/dist">
+            <fileset dir="${build.dir}" includes="${DIST_PACKAGE_NAME}" />
+        </copy>
+        <!-- copy the SFX binary -->
+        <copy todir="${target.dir}">
+            <fileset dir="${lib.dir}" includes="7zSD.sfx" />
+        </copy>
+        <!-- copy the SFX configuration -->
+        <copy todir="${target.dir}">
+            <fileset dir="${src.dir}">
+                <include name="appserver-sfx.txt" />
+            </fileset>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Creates a binary version of the IzPack installer JAR file            -->
+    <!-- ==================================================================== -->
+    <target name="create-exe" depends="prepare-exe" description="Creates a binary version of the IzPack installer JAR file.">
+        <!-- create executable package name -->
+        <create-package-name 
+            tag="${appserver.src.version}"
+            outputProperty="EXE_PACKAGE_NAME"
+            prefix="${build.name.prefix}dist" 
+            build="${build.number}" 
+            suffixSeparator="+" 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="exe" />
+        <!-- compress all of the files we need to down with 7zip -->
+        <exec executable="${target.dir}/7za.exe" failonerror="true">
+            <arg value="a" />
+            <arg value="-t7z" />
+            <arg value="-r" />
+            <arg value="${target.dir}/appserver.7z" />
+            <arg value="${target.dir}/dist" />
+        </exec>
+        <!-- concat the files we need together to produce a binary  launcher -->
+        <concat destfile="${build.dir}/${EXE_PACKAGE_NAME}" binary="yes">
+            <fileset file="${lib.dir}/7zSD.sfx" />
+            <fileset file="${target.dir}/appserver-sfx.txt" />
+            <fileset file="${target.dir}/appserver.7z" />
+        </concat>
+      </target>
+
+    <!-- ==================================================================== -->
     <!-- Creates the IzPack installer JAR file                                -->
     <!-- ==================================================================== -->
     <target name="build" description="Creates the IzPack installer JAR file.">
         <antcall target="prepare-build" />
-        <antcall target="pack-dist"/>
+        <antcall target="create-exe"/>
     </target>
 
     <!-- ==================================================================== -->
@@ -290,7 +359,7 @@
             </fileset>
         </scp>
     </target>
-    
+	
     <!-- ==================================================================== -->
     <!-- Extracts version and suffix from a tag                               -->
     <!-- ==================================================================== -->
