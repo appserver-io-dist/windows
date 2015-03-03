@@ -62,8 +62,12 @@
             </fileset>
             <!-- parse the .BAT file and replace variables like $INSTALL_PATH -->
             <parsable os="windows" targetfile="$INSTALL_PATH/scripts/setup.bat" />
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/services-register.bat" />
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/services-unregister.bat" />
             <!-- execute the .BAT file -->
             <executable os="windows" targetfile="$INSTALL_PATH/scripts/setup.bat" stage="postinstall" keep="true"/>
+            <executable os="windows" targetfile="$INSTALL_PATH/scripts/services-register.bat" stage="postinstall" keep="true"/>
+            <executable os="windows" targetfile="$INSTALL_PATH/scripts/services-unregister.bat" stage="uninstall" keep="true"/>
         </pack>
     </packs>
 
