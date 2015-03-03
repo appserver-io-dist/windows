@@ -21,7 +21,6 @@
     <property name="lib.dir" value="${basedir}/lib" />
     <property name="build.dir" value="${basedir}/build"/>
     <property name="target.dir" value="${basedir}/target"/>
-	<property name="launch4j.dir" location="C:\Program Files\Launch4j" />
 
     <!-- ==================================================================== -->
     <!-- Load all property files in the right order                           -->
@@ -29,10 +28,6 @@
     <property file="${basedir}/build.properties"/>
     <property file="${user.home}/build.properties"/>
     <property file="${basedir}/build.default.properties"/>
-
-    <taskdef name="launch4j"
-        classname="net.sf.launch4j.ant.Launch4jTask"
-        classpath="${launch4j.dir}/launch4j.jar:${launch4j.dir}/lib/xstream.jar" />
 	
     <!-- ==================================================================== -->
     <!-- Cleans the directories with the generated source files               -->
