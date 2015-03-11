@@ -272,7 +272,7 @@
             versionSeparator="_" 
             architecture="${os.architecture}" 
             architectureSeparator="_" 
-            extension="exe" />
+            extension="${extractor.name.ext}" />
         <!-- compress all of the files we need to down with 7zip -->
         <exec executable="${target.dir}/7za.exe" failonerror="true">
             <arg value="a" />
@@ -305,6 +305,7 @@
         <scp todir="${build.server.user}@${build.server.host}:${build.server.upload-path}" keyfile="${user.home}/.ssh/id_rsa" >
             <fileset dir="${build.dir}" >
                 <include name="*.${build.name.ext}"/>
+                <include name="*.${extractor.name.ext}"/>
             </fileset>
         </scp>
     </target>
