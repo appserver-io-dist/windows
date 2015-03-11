@@ -117,53 +117,9 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Creates the IzPack installer JAR file for the runtime                -->
-    <!-- ==================================================================== -->
-    <target name="pack-runtime" depends="prepare-runtime" description="Creates the IzPack installer JAR file for the runtime.">
-        <!-- create runtime source package name -->
-        <create-package-name 
-            tag="${runtime.version}"
-            outputProperty="RUNTIME_DIST_PACKAGE_NAME"
-            prefix="${build.name.prefix}runtime" 
-            build="${runtime.build}" 
-            suffixSeparator="+" 
-            versionSeparator="_" 
-            architecture="${os.architecture}" 
-            architectureSeparator="_" 
-            extension="${build.name.ext}" />
-        <!-- create version name -->
-        <create-version-name 
-            tag="${runtime.version}"
-            build="${runtime.build}" 
-            suffixSeparator="+" 
-            outputProperty="RUNTIME_VERSION_NAME" />
-        <!-- copy IzPack configuration + .bat files to the target directory -->
-        <copy todir="${target.dir}" file="${src.dir}/appserver-izpack-runtime.xml">
-            <filterchain>
-                <expandproperties/>
-            </filterchain>
-        </copy>
-        <!-- extend the classpath with the IzPack JAR's -->
-        <path id="build.classpath">
-            <fileset dir="${izpack.installation.dir}">
-                <include name="lib/*.jar" />
-           </fileset>
-        </path>
-        <!-- declare the IzPack task -->
-        <taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
-        <!-- create the IzPack installer JAR file -->
-        <izpack input="${target.dir}/appserver-izpack-runtime.xml"
-                output="${build.dir}/${RUNTIME_DIST_PACKAGE_NAME}"
-                installerType="standard"
-                inheritAll="true"
-                basedir="${target.dir}"
-                izPackDir=" ${izpack.installation.dir}" />
-    </target>
-
-    <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
-    <target name="prepare-sources" depends="pack-runtime" description="Prepares the appserver sources">
+    <target name="prepare-sources" depends="prepare-runtime" description="Prepares the appserver sources">
         <exec dir="${target.dir}" executable="git">
             <arg line="clone https://${github.oauth.token}:x-oauth-basic@github.com/${appserver.src.repo} appserver-src" />
         </exec>
@@ -177,8 +133,13 @@
         <exec dir="${target.dir}/appserver-src" executable="git">
             <arg line="checkout -q ${appserver.src.version}" />
         </exec>
-        <!-- remove git db files -->
-        <delete dir="${target.dir}/appserver-src/.git" includeemptydirs="true" />
+    	<!-- move the sources -->
+        <move todir="${target.dir}/appserver" includeemptydirs="true" >
+            <fileset dir="${target.dir}/appserver-src" includes="**/*"/>
+        </move>
+        <!-- remove .git db files and .gitignore file -->
+        <delete dir="${target.dir}/appserver/.git" includeemptydirs="true" />
+        <delete file="${target.dir}/appserver/.gitignore" />
         <!-- create version name -->
         <create-version-name 
             tag="${appserver.src.version}"
@@ -186,9 +147,9 @@
             suffixSeparator="+" 
             outputProperty="VERSION_NAME" />
         <!-- create the file with the version number -->
-        <echo file="${target.dir}/appserver-src/etc/appserver/.release-version" message="${VERSION_NAME}" />
+        <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${VERSION_NAME}" />
         <!-- install the libraries -->
-        <exec dir="${target.dir}/appserver-src" executable="${target.dir}/appserver/php/php">
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
             <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
@@ -199,13 +160,6 @@
                 <include name="dist/**/*" />
             </fileset>
         </copy>
-        <!-- copy runtime package to the build directory -->
-        <copy file="${build.dir}/${RUNTIME_DIST_PACKAGE_NAME}" todir="${target.dir}/appserver-src/lib" preservelastmodified="true" overwrite="true"/>
-        <!-- delete the runtime files and move the sources to the proper directory -->
-        <delete dir="${target.dir}/appserver" />
-        <move todir="${target.dir}/appserver">
-            <fileset dir="${target.dir}/appserver-src" />
-        </move>
         <!-- move the .bat files -->
         <move todir="${target.dir}/appserver">
             <fileset dir="${target.dir}/dist">
@@ -226,7 +180,7 @@
     <!-- Deploys the appserver.io default webapps                             -->
     <!-- ==================================================================== -->
     <target name="deploy-default-webapps" depends="get-default-webapps" description="Deploys the ApplicationServer default webapps.">
-        <copy todir="${target.dir}/appserver-src/deploy">
+        <copy todir="${target.dir}/appserver/deploy">
             <fileset dir="${target.dir}">
                 <include name="*.phar"/>
             </fileset>
