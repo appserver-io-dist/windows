@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Readme</title>
+<style type="text/css">
+body {
+	font-family: sans-serif;
+}
+</style>
+</head>
+<body>
+	<h1>Welcome to appserver.io</h1>
+
+	<p>appserver.io is a next generation PHP infrastructure. It is not
+		a webserver like Apache or nginx, nor a Timer-Service or
+		Message-Queue. It is all of them and much more in one extremely
+		powerful bundle. And it is completely written in PHP enabling PHP
+		developers to adapt appserver.io to their specific needs with no
+		additional coding language - just PHP!</p>
+
+	<h1>Basic Usage</h1>
+
+	<p>The appserver will automatically start after your installation
+		wizard (or package manager) finishes the setup. You can use it without
+		limitations from now on.</p>
+
+	<p>Below you can find basic instructions on how to make use of the
+		appserver. After the installation you might want to have a look and
+		the bundled example application. The example application shows basic
+		usage of services. Use your favorite browser and open the URL
+	<pre>http://127.0.0.1:9080/example</pre>
+	</p>
+
+	<p>
+		You will see that we provide basic frontend implementations of
+		services the appserver runtime provides. If you want to use these
+		services yourself you should have a look into the sourcecode and read
+		our tutorial about starting your own <a target="_blank"
+			href="http://appserver.io/get-started/tutorials/my-first-webapp.html">webapp</a>.
+	</p>
+
+	<p>You might be curious about the different port we use. Per
+		default the appserver will open several ports at which it's services
+		are available. As we do not want to block (or be blocked by) other
+		services we use ports of a higher range.</p>
+
+	<p>As a default we use the following ports for the Web-Container:
+	<p>
+	<ul>
+		<li>HTTP-Server: 9080</li>
+		<li>HTTPS-Server: 9443</li>
+	</ul>
+	<p>For the Persistence-Container we use:</p>
+	<ul>
+		<li>Persistence-Container: 8585</li>
+		<li>Message-Queue: 8587</li>
+	</ul>
+
+	<p>
+		You can change this default port mapping by using the configuration
+		file. If you are interested in our naming, you can see our
+		Container-Server Pattern, you might want to have a deeper look into
+		our <a target="_blank"
+			href="http://appserver.io/get-started/documentation/configuration.html">architecture.</a>
+	</p>
+
+	<h2>Services</h2>
+
+	<p>Since appserver.io version 1.0.2 we provide and also install
+		services during the installation process. This means, that you don't
+		have to start or restart appserver.io after installation.</p>
+
+	<p>If you need to stop/start/restart the appserver.io, this can be
+		done with the Windows Services which are available under Control Panel
+		> System and Security > Administrative Tools > Services or the command
+		line. When using Windows Services, simply select the service to be
+		restarted, open the context menue and click on the restart entry.</p>
+
+	<p>Another option to start/stop a service is the commandline.
+		Therefore open a commandline as Administrator and type
+	<pre>net stop appserver
+       </pre>
+	to stop the appserver service and
+	<pre>net start appserver</pre>
+	to start it again. A more detailed documentation can be found in the
+	Microsoft
+	<a target="_blank"
+		href="https://technet.microsoft.com/en-us/library/cc736564%28v=ws.10%29.aspx">TechNet</a>.
+	</p>
+
+	<p>On a Windows system only the appserver and the
+		appserver-php5-fpm services are functional actually. To ultimately run
+		the appserver only the appserver process is needed but you will miss
+		simple on-the-fly deployment (appserver-watcher) and might have
+		problems with legacy applications. Depending on the FastCGI backend
+		you want to use you might ditch appserver-php5-fpm for other processes
+		e. g. supplying you with a HHVM backend.</p>
+
+	<h2>Start and Stop Scripts</h2>
+
+	<p>The second option, which is not the recommended one, to
+		start/stop/restart services is to use the batch files, delivered with
+		appserver.io.</p>
+
+	<ul>
+		<li>appserver.bat: The main process which will start the
+			appserver itself</li>
+
+		<li>appserver-php5-fpm.bat: PHP-FPM + appserver configuration.
+			Our default FastCGI backend. Others might be added the same way</li>
+
+		<li>appserver-watcher.bat: A watchdog which monitors filesystem
+			changes and manages appserver restarts</li>
+	</ul>
+
+</body>
+</html>

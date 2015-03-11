@@ -1,0 +1,6 @@
+;!@Install@!UTF-8!
+Title="appserver.io Install Launcher"
+BeginPrompt="Extract Install Launcher for appserver.io"
+ExecuteFile="dist\jre\bin\javaw.exe"
+ExecuteParameters="-jar dist\${DIST_PACKAGE_NAME}"
+;!@InstallEnd@!
