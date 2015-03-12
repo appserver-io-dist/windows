@@ -5,13 +5,44 @@
 
     <info>
         <appname>appserver</appname>
-        <appversion>${appserver.src.version}.${build.number}</appversion>
+        <appversion>${VERSION_NAME}</appversion>
         <appsubpath>appserver</appsubpath>
+        <url>http://www.appserver.io</url>
         <javaversion>1.6</javaversion>
+        <rebootaction>ask</rebootaction>
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7|izpack.windowsinstall.8" />
+        <authors>
+            <author name="Tim Wagner" email="tw@appserver.io" />
+            <author name="Johann Zelger" email="jz@appserver.io" />
+            <author name="Bernhard Wick" email="bw@appserver.io" />
+        </authors>
     </info>
 
-    <guiprefs width="640" height="360" resizable="no">
+    <natives>
+        <native type="3rdparty" name="COIOSHelper.dll" stage="both">
+           <os family="windows"/>
+        </native>
+        <native type="3rdparty" name="COIOSHelper_x64.dll" stage="both">
+           <os family="windows"/>
+        </native>
+        <native type="izpack" name="WinSetupAPI.dll">
+            <os family="windows"/>
+        </native>
+        <native type="izpack" name="WinSetupAPI_x64.dll">
+            <os family="windows"/>
+        </native>
+    </natives>
+
+    <listeners>
+        <listener classname="RegistryInstallerListener" stage="install" >
+            <os family="windows"/>
+        </listener>
+        <listener classname="RegistryUninstallerListener" stage="uninstall" >
+            <os family="windows"/>
+        </listener>
+    </listeners>
+
+    <guiprefs width="640" height="480" resizable="no">
         <splash>dist/resources/splash.jpg</splash>
     </guiprefs>
 
@@ -20,35 +51,122 @@
     </locale>
 
     <resources>
-        <res id="InfoPanel.info" src="dist/resources/readme.txt" parse="no"/>
-        <res id="LicencePanel.licence" src="dist/resources/license.txt"/>
+        <res id="HTMLInfoPanel.info" src="dist/resources/readme.html" />
+        <res id="HTMLLicencePanel.licence" src="dist/resources/license.html" />
+        <res id="ProcessPanel.Spec.xml" src="dist/panels/ProcessPanel.Spec.xml" />
     </resources>
 
     <panels>
-        <panel classname="InfoPanel" />
-        <panel classname="LicencePanel" />
+        <panel classname="HTMLInfoPanel" />
+        <panel classname="HTMLLicencePanel" />
         <panel classname="TargetPanel" />
         <panel classname="PacksPanel" />
         <panel classname="InstallPanel" />
+        <panel classname="ProcessPanel" />
         <panel classname="FinishPanel" />
     </panels>
 
     <packs>
         <pack name="Core Files" required="yes">
-            <description>The core files needed to run the server</description>
+            <description>Runtime and Core files needed to run appserver.io</description>
             <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
                 <exclude name="deploy/**" />
+                <exclude name="php/php.ini" />
+                <exclude name="php/*.dll" />
+                <exclude name="php/php.exe" />
+                <exclude name="php/nssm.exe" />
+                <exclude name="php/php-cgi.exe" />
+                <exclude name="php/ext/*.dll" />
+                <exclude name="etc/appserver/**/*.xml" />
             </fileset>
+            <!-- The .exe files are maybe in use when services are running -->
+            <singlefile src="appserver/php/php.exe" target="${INSTALL_PATH}/php/php.exe" override="true" blockable="auto" />
+            <singlefile src="appserver/php/nssm.exe" target="${INSTALL_PATH}/php/nssm.exe" override="true" blockable="auto" />
+            <singlefile src="appserver/php/php-cgi.exe" target="${INSTALL_PATH}/php/php-cgi.exe" override="true" blockable="auto" />
+            <!-- The php/*.dll files are maybe in use when services are running -->
+            <singlefile src="appserver/php/glib-2.dll" target="${INSTALL_PATH}/php/glib-2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/gmodule-2.dll" target="${INSTALL_PATH}/php/gmodule-2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icudt51.dll" target="${INSTALL_PATH}/php/icudt51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuin51.dll" target="${INSTALL_PATH}/php/icuin51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuio51.dll" target="${INSTALL_PATH}/php/icuio51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icule51.dll" target="${INSTALL_PATH}/php/icule51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/iculx51.dll" target="${INSTALL_PATH}/php/iculx51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icutest51.dll" target="${INSTALL_PATH}/php/icutest51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuuc51.dll" target="${INSTALL_PATH}/php/icuuc51.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libeay32.dll" target="${INSTALL_PATH}/php/libeay32.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libenchant_ispell.dll" target="${INSTALL_PATH}/php/libenchant_ispell.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libenchant_myspell.dll" target="${INSTALL_PATH}/php/libenchant_myspell.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libenchant.dll" target="${INSTALL_PATH}/php/libenchant.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libpq.dll" target="${INSTALL_PATH}/php/libpq.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libsasl.dll" target="${INSTALL_PATH}/php/libsasl.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/libssh2.dll" target="${INSTALL_PATH}/php/libssh2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/php5apache2_4.dll" target="${INSTALL_PATH}/php/php5apache2_4.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/php5ts.dll" target="${INSTALL_PATH}/php/php5ts.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/pthreadVC2.dll" target="${INSTALL_PATH}/php/pthreadVC2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ssleay32.dll" target="${INSTALL_PATH}/php/ssleay32.dll" override="true" blockable="auto" />
+            <!-- The php/ext/*.dll files are maybe in use when services are running -->
+            <singlefile src="appserver/php/ext/ioncube_loader_win_5.5.dll" target="${INSTALL_PATH}/php/ext/ioncube_loader_win_5.5.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_apcu.dll" target="${INSTALL_PATH}/php/ext/php_apcu.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_appserver.dll" target="${INSTALL_PATH}/php/ext/php_appserver.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_bz2.dll" target="${INSTALL_PATH}/php/ext/php_bz2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_com_dotnet.dll" target="${INSTALL_PATH}/php/ext/php_com_dotnet.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_curl.dll" target="${INSTALL_PATH}/php/ext/php_curl.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_enchant.dll" target="${INSTALL_PATH}/php/ext/php_enchant.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_event.dll" target="${INSTALL_PATH}/php/ext/php_event.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_exif.dll" target="${INSTALL_PATH}/php/ext/php_exif.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_fileinfo.dll" target="${INSTALL_PATH}/php/ext/php_fileinfo.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_gd2.dll" target="${INSTALL_PATH}/php/ext/php_gd2.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_gettext.dll" target="${INSTALL_PATH}/php/ext/php_gettext.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_gmp.dll" target="${INSTALL_PATH}/php/ext/php_gmp.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_imap.dll" target="${INSTALL_PATH}/php/ext/php_imap.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_interbase.dll" target="${INSTALL_PATH}/php/ext/php_interbase.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_intl.dll" target="${INSTALL_PATH}/php/ext/php_intl.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_ldap.dll" target="${INSTALL_PATH}/php/ext/php_ldap.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_mbstring.dll" target="${INSTALL_PATH}/php/ext/php_mbstring.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_mysql.dll" target="${INSTALL_PATH}/php/ext/php_mysql.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_mysqli.dll" target="${INSTALL_PATH}/php/ext/php_mysqli.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_oci8_11g.dll" target="${INSTALL_PATH}/php/ext/php_oci8_11g.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_oci8.dll" target="${INSTALL_PATH}/php/ext/php_oci8.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_opcache.dll" target="${INSTALL_PATH}/php/ext/php_opcache.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_openssl.dll" target="${INSTALL_PATH}/php/ext/php_openssl.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_firebird.dll" target="${INSTALL_PATH}/php/ext/php_pdo_firebird.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_mysql.dll" target="${INSTALL_PATH}/php/ext/php_pdo_mysql.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_oci.dll" target="${INSTALL_PATH}/php/ext/php_pdo_oci.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_odbc.dll" target="${INSTALL_PATH}/php/ext/php_pdo_odbc.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_pgsql.dll" target="${INSTALL_PATH}/php/ext/php_pdo_pgsql.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pdo_sqlite.dll" target="${INSTALL_PATH}/php/ext/php_pdo_sqlite.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pgsql.dll" target="${INSTALL_PATH}/php/ext/php_pgsql.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_pthreads.dll" target="${INSTALL_PATH}/php/ext/php_pthreads.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_shmop.dll" target="${INSTALL_PATH}/php/ext/php_shmop.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_snmp.dll" target="${INSTALL_PATH}/php/ext/php_snmp.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_soap.dll" target="${INSTALL_PATH}/php/ext/php_soap.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_sockets.dll" target="${INSTALL_PATH}/php/ext/php_sockets.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_sqlite3.dll" target="${INSTALL_PATH}/php/ext/php_sqlite3.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_sybase_ct.dll" target="${INSTALL_PATH}/php/ext/php_sybase_ct.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_tidy.dll" target="${INSTALL_PATH}/php/ext/php_tidy.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_xmlrpc.dll" target="${INSTALL_PATH}/php/ext/php_xmlrpc.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/ext/php_xsl.dll" target="${INSTALL_PATH}/php/ext/php_xsl.dll" override="true" blockable="auto" />
+            <!-- install the configuration files -->
+            <file targetdir="${INSTALL_PATH}/php" src="appserver/php/php.ini" override="askfalse" />
+            <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="askfalse">
+                <include name="etc/appserver/**/*.xml" />
+            </fileset>
+            <!-- parse the .BAT file and replace variables like $INSTALL_PATH -->
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/postinstall.bat" />
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/services-register.bat" />
+            <parsable os="windows" targetfile="$INSTALL_PATH/scripts/services-unregister.bat" />
+            <!-- execute the .BAT file -->
+            <executable os="windows" targetfile="$INSTALL_PATH/scripts/services-unregister.bat" stage="uninstall" keep="true"/>
         </pack>
         <pack name="Example Application" required="no">
-            <description>A example webapp</description>
+            <description>The example webapp</description>
             <fileset dir="appserver" targetdir="${INSTALL_PATH}" override="true">
                 <include name="deploy/example.phar*" />
             </fileset>
         </pack>
-        <pack name="appserver.io ${runtime.version} Runtime Package (${os.architecture})" required="no" preselected="yes">
-            <description>The appserver.io ${runtime.version} Runtime Package (${os.architecture})</description>
-            <executable targetfile="$INSTALL_PATH/lib/${runtime-package.name}" stage="postinstall" type="jar"  keep="true"/>
+        <pack name="Microsoft Visual C++ 2010 Redistributable Package (${os.architecture})" required="no" preselected="yes">
+            <description>The Microsoft Visual C++ 2010 Redistributable Packe (${os.architecture})</description>
+            <executable targetfile="$INSTALL_PATH/lib/vcredist_x86.exe" stage="postinstall" />
         </pack>
     </packs>
 

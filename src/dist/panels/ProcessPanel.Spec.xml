@@ -1,0 +1,10 @@
+<processing>
+    <job name="Post-Install Scripts">
+        <os family="windows" />
+        <executefile name="$INSTALL_PATH/scripts/postinstall.bat" workingDir="$INSTALL_PATH" />
+    </job>
+    <job name="Register Services">
+        <os family="windows" />
+        <executefile name="$INSTALL_PATH/scripts/services-register.bat" workingDir="$INSTALL_PATH" />
+    </job>
+</processing>
