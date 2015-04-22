@@ -6,8 +6,14 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  # Basic default configuration
-  config.vm.box = "http://aka.ms/vagrant-${os.version.prefix}${target-os.version}-${vagrant-basebox.browser.suffix}"
+  # Basic default configuration used for intial setup of box.
+  # Please use if packaged boxes are unavailable or unwelcome
+  # config.vm.box = "chef/fedora-${target-os.version}"
+  # config.vm.box = "http://aka.ms/vagrant-${os.version.prefix}${target-os.version}-${vagrant-basebox.browser.suffix}"
+
+  # Box name and location
+  config.vm.box = "${vagrant-box.name}"
+  config.vm.box_url = "${vagrant-box.baseurl}/${vagrant-box.name}.box"
 
   # Basic network configuration
   config.vm.host_name = "${vagrant-box.name}"
@@ -20,6 +26,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "${reports.dir}", "${vagrant-reports.dir}"
   config.vm.synced_folder "${src.dir}", "${vagrant-src.dir}"
   config.vm.synced_folder "${lib.dir}", "${vagrant-lib.dir}"
+
+  # Shell provisioning used for intial setup of box.
+  # Please use if packaged boxes are unavailable or unwelcome
+  # config.vm.provision "shell", path: "provision.cmd"
 
   # Extend the timeout for initial connection
   config.vm.boot_timeout = 600

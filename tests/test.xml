@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="appserver-io-dist/fedora-tests" basedir=".." default="prepare-test-environment">
+<project name="appserver-io-dist/windows-tests" basedir=".." default="prepare-test-environment">
 
     <!-- Read in tests property files -->
     <property file="${basedir}/tests/tests.properties"/>
