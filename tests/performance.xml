@@ -1,27 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="appserver-io-dist/windows-tests-performance" basedir=".." default="run-performance-tests">
-
-    <!-- ==================================================================== -->
-    <!-- Runs all available performance tests                                 -->
-    <!-- ==================================================================== -->
-    <target name="local-run-performance-tests" depends="ensure-runtime-installed, ensure-dist-installed">
-        <!-- test if the jmeter testplan runs through without errors -->
-        <antcall target="measure-jmeter-example-testplan" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Runs all available performance tests within a vagrant box we start   -->
-    <!-- and destroy automatically                                            -->
-    <!-- ==================================================================== -->
-    <target name="run-performance-tests">
-        <!-- start our vagrant box -->
-        <antcall target="start-vagrant-test-box" />
-        <!-- invoke original performance tests within vagrant box -->
-        <antcall target="vagrant-run-performance-tests" />
-        <!-- destroy the box after all work is done -->
-        <antcall target="destroy-vagrant-box" />
-    </target>
+<project name="appserver-io-dist/windows-tests-performance" basedir="..">
 
     <!-- ==================================================================== -->
     <!-- Runs all available performance tests within an expected vagrant VM   -->

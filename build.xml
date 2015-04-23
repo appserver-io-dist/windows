@@ -32,9 +32,27 @@
     <property name="reports.dir" value="${basedir}/reports" />
 
     <!-- ==================================================================== -->
-    <!-- Import the tests/*.xml files                                         -->
+    <!-- Initialize the library specific properties                           -->
+    <!-- ==================================================================== -->
+    <property name="codepool" value="vendor"/>
+
+    <!-- ==================================================================== -->
+    <!-- Initialize the directory where we can find the real build files      -->
+    <!-- ==================================================================== -->
+    <property name="dependency.dir" value ="${basedir}/${codepool}" />
+    <property name="package.dir" value="${dependency.dir}/package" />
+    <property name="package.remote-location" value="https://github.com/appserver-io-dist/package.git" />
+
+    <!-- ==================================================================== -->
+    <!-- Import the local tests/*files                                        -->
     <!-- ==================================================================== -->
     <import file="tests/test.xml"/>
+
+    <!-- ==================================================================== -->
+    <!-- Import the package build files if they are present                   -->
+    <!-- ==================================================================== -->
+    <import file="${package.dir}/common.xml" optional="true" />
+
 
     <!-- ==================================================================== -->
     <!-- Cleans the target directories                                        -->
@@ -82,88 +100,6 @@
     <!-- ==================================================================== -->
     <target name="prepare-build">
         <mkdir dir="${build.dir}" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Will test if the targeted box is already up and running.             -->
-    <!-- Will set the properties "vagrant-box.running" or                     -->
-    <!-- "vagrant-box.not-running" depending on the result                    -->
-    <!-- ==================================================================== -->
-    <target name="test-vagrant-box-running">
-        <!-- issue the actual command -->
-        <exec dir="${temp.dir}" executable="vagrant" outputproperty="vagrant-box.status">
-            <arg value="status" />
-        </exec>
-        <parse-vagrant-box-status status="${vagrant-box.status}" boxname="${vagrant-box.name}" />
-        <condition property="vagrant-box.not-running">
-            <isset property="BOX_NOT_RUNNING"/>
-        </condition>
-        <condition property="vagrant-box.running">
-            <isset property="BOX_RUNNING"/>
-        </condition>
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Will parse a vagrant box status to look for the "running" state.     -->
-    <!-- Will set BOX_RUNNING if found, BOX_NOT_RUNNING if otherwise          -->
-    <!-- ==================================================================== -->
-    <scriptdef name="parse-vagrant-box-status" language="javascript">
-        <attribute name="status"/>
-        <attribute name="boxname"/>
-        <![CDATA[
-            // getting the params
-            var status = attributes.get("status");
-            var boxName = attributes.get("boxname");
-            // check the occurence of a certain run indicator
-            if (status.indexOf(boxName + " running") > -1) {
-                project.setProperty("BOX_RUNNING", true);
-            } else {
-                project.setProperty("BOX_NOT_RUNNING", true);
-            }
-        ]]>
-    </scriptdef>
-
-    <!-- ==================================================================== -->
-    <!-- Will start a vagrant box within the tmp directory                    -->
-    <!-- ==================================================================== -->
-    <target name="start-vagrant-box" depends="test-vagrant-box-running" if="vagrant-box.not-running">
-        <!-- tell the user we need the box name first -->
-        <fail unless="vagrant-box.name" message="Please specify the type of box to start e.g. using 'ant start-vagrant-build-box'" />
-        <!-- issue the actual start command -->
-        <exec dir="${temp.dir}" executable="vagrant" failonerror="true">
-            <arg line="up ${vagrant-box.name} --provider=${vagrant.provider} --destroy-on-error" />
-        </exec>
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Will start a vagrant box specifically suited for build tasks         -->
-    <!-- ==================================================================== -->
-    <target name="start-vagrant-build-box">
-        <!-- map the vagrant name according to our prepared environment -->
-        <property name="vagrant-box.name" value="${vagrant-box.prefix}Build" />
-        <!-- prepare the building environment -->
-        <antcall target="prepare-build-environment" />
-        <!-- start our vagrant box -->
-        <antcall target="start-vagrant-box" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Will destroy any running vagrant box within our tmp directory        -->
-    <!-- ==================================================================== -->
-    <target name="destroy-vagrant-box" depends="test-vagrant-box-running" unless="vagrant-box.not-running">
-        <!-- issue the actual destroy command -->
-        <exec dir="${temp.dir}" executable="vagrant" failonerror="true">
-            <arg line="destroy -f" />
-        </exec>
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Will destroy any running vagrant box within our tmp directory if     -->
-    <!-- there has been an error before                                       -->
-    <!-- ==================================================================== -->
-    <target name="destroy-vagrant-box-on-error" if="fatal-error.occured" unless="${vagrant-box.error-resistant}">
-        <!-- forward to the destroy command -->
-        <antcall target="destroy-vagrant-box" />
     </target>
 
     <!-- ==================================================================== -->
@@ -543,14 +479,13 @@
             <fileset dir="${basedir}">
                <include name="build.*"/>
                <include name="tests/*"/>
-               <exclude name="tests/provision.sh"/>
+                <include name="${codepool}/**"/>
             </fileset>
         </copy>
         <!-- expand the properties within our box configuration -->
         <copy todir="${temp.dir}" failonerror="true">
             <fileset dir=".">
                 <include name="Vagrantfile"/>
-                <include name="provision.sh"/>
             </fileset>
             <filterchain>
                 <expandproperties/>
@@ -558,19 +493,6 @@
         </copy>
         <!-- prepare a tmp dir for work within the VM -->
         <mkdir dir="${temp.dir}/tmp" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Creates all RPM packages within a temporarily started vagrant box.   -->
-    <!-- Box will be started and destroyed automatically                      -->
-    <!-- ==================================================================== -->
-    <target name="build">
-        <!-- start our vagrant box -->
-        <antcall target="start-vagrant-build-box" />
-        <!-- start the build in the box -->
-        <antcall target="vagrant-build" />
-        <!-- destroy the box after all work is done -->
-        <antcall target="destroy-vagrant-box" />   
     </target>
 
     <!-- ==================================================================== -->
@@ -603,41 +525,6 @@
     <target name="local-build" description="Creates the IzPack installer JAR file.">
         <antcall target="prepare-build" />
         <antcall target="create-exe"/>
-    </target>
-
-
-    <!-- ==================================================================== -->
-    <!-- Runs all available tests from all included test files                -->
-    <!-- ==================================================================== -->
-    <target name="local-run-tests" depends="prepare">
-        <!-- run the integration tests -->
-        <antcall target="local-run-system-tests" />
-        <!-- run performance tests -->
-        <antcall target="local-run-performance-tests" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Runs all available tests from all included test files within a       -->
-    <!-- vagrant machine                                                      -->
-    <!-- ==================================================================== -->
-    <target name="vagrant-run-tests">
-        <!-- run the system tests within the assumed box -->
-        <antcall target="vagrant-run-system-tests" />
-        <!-- run the performance tests within the assumed box -->
-        <antcall target="vagrant-run-performance-tests" />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Runs all available tests from all included test files within a       -->
-    <!-- vagrant machine                                                      -->
-    <!-- ==================================================================== -->
-    <target name="run-tests">
-        <!-- start our vagrant box -->
-        <antcall target="start-vagrant-test-box" />
-        <!-- do the actual testing -->
-        <antcall target="vagrant-run-tests" />
-        <!-- destroy the box after all work is done -->
-        <antcall target="destroy-vagrant-box" />
     </target>
 
 </project>
