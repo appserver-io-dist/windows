@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="appserver-io-dist/windows" default="build" basedir=".">
+<project name="appserver-io-dist/windows" default="dependencies-init" basedir=".">
 
     <!-- ==================================================================== -->
     <!-- Load the environment variables into our properties                   -->
@@ -100,6 +100,28 @@
     <!-- ==================================================================== -->
     <target name="prepare-build">
         <mkdir dir="${build.dir}" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Checks if the package helper libary is present                       -->
+    <!-- ==================================================================== -->
+    <target name="package-library-present">
+        <!-- check for the existence of the most central file of the package library -->
+        <available file="${package.dir}/common.xml" property="package-library.present" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Loads all dependencies needed for the execution of build targets.    -->
+    <!-- Not to be confused with the loading of dependencies needed for the   -->
+    <!-- built packages!                                                      -->
+    <!-- ==================================================================== -->
+    <target name="dependencies-init" depends="package-library-present" unless="package-library.present">
+        <!-- create the target dir -->
+        <mkdir dir="${dependency.dir}" />
+        <!-- clone the latest version of our package library -->
+        <exec dir="${dependency.dir}" executable="git">
+            <arg line="clone ${package.remote-location}" />
+        </exec>
     </target>
 
     <!-- ==================================================================== -->

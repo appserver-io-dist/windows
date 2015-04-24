@@ -6,4 +6,6 @@
 /build
 /target
 /instance-src
+/tmp
+/vendor
 build.properties
