@@ -12,25 +12,37 @@
     <import file="system.xml"/>
     <import file="performance.xml"/>
 
+	<!-- ==================================================================== -->
+    <!-- Will provide the appserver.src.version property if not defined       -->
+    <!-- already                                                              -->
     <!-- ==================================================================== -->
-    <!-- Will try to install the dist package                                 -->
-    <!-- ==================================================================== -->
-    <target name="install-appserver-dist">
-        <!-- try to install the appserver dist package -->
-        <exec dir="${test.basedir}" executable="bash" failonerror="true">
-            <arg value="-c" />
-            <arg value="yum -y install ${vagrant-build.dir}/${build.name.prefix}dist-*.${os.version.prefix}${target-os.version}.${os.architecture}.rpm" />
+    <target name="get-appserver-src-version">
+    	<!-- get the appserver src fist -->
+    	<antcall target="get-appserver-src" />
+        <!-- get lastest tag version -->
+        <exec dir="${temp.dir}/appserver-src" executable="git" outputProperty="appserver.src.version">
+            <arg line="describe --abbrev=0 --tags" />
         </exec>
     </target>
-
+	
     <!-- ==================================================================== -->
-    <!-- Will try to install the runtime package                              -->
+    <!-- Will try to install the appserver package                                 -->
     <!-- ==================================================================== -->
-    <target name="install-appserver-runtime">
-        <!-- try to install the appserver runtime -->
-        <exec dir="${test.basedir}" executable="bash" failonerror="true">
-            <arg value="-c" />
-            <arg value="yum -y install ${vagrant-build.dir}/${build.name.prefix}runtime-${appserver.runtime.version}-${appserver.runtime.build}.${os.version.prefix}${target-os.version}.${os.architecture}.rpm" />
+    <target name="install-appserver" depends="get-appserver-src-version">
+    	<!-- create distribution package name -->
+        <create-package-name 
+            tag="${appserver.src.version}"
+            outputProperty="DIST_PACKAGE_NAME"
+            prefix="${build.name.prefix}dist" 
+            build="${build.number}" 
+            suffixSeparator="." 
+            versionSeparator="_" 
+            architecture="${os.architecture}" 
+            architectureSeparator="_" 
+            extension="${build.name.ext}" />
+        <!-- try to install the appserver dist package -->
+        <exec dir="${test.basedir}" executable="java" failonerror="true">
+            <arg line="-jar ${vagrant-build.dir}/${DIST_PACKAGE_NAME} ${tests.dir}/appserver-izpack-auto-install.xml" />
         </exec>
     </target>
 
@@ -61,7 +73,7 @@
     <!-- Tests if the runtime package has been installed                      -->
     <!-- ==================================================================== -->
     <target name="test-runtime-installed">
-        <available file="${appserver-base.dir}/bin/php" property="appserver.runtime.installed"/>
+        <available file="${appserver-base.dir}/php/php.exe" property="appserver.runtime.installed"/>
     </target>
 
 </project>

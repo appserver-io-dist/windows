@@ -11,7 +11,7 @@
         <!-- invoke original performance tests within vagrant box -->
         <exec dir="${temp.dir}" executable="sh" errorproperty="test.failed">
             <arg value="-c" />
-            <arg value='vagrant ssh-config | ssh -F /dev/stdin ${vagrant-box.name} "sudo ant local-run-performance-tests -buildfile ${vagrant.basedir}/build.xml -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
+            <arg value='vagrant ssh-config | ssh -F /dev/stdin ${vagrant-box.name} "ant local-run-performance-tests -buildfile ${vagrant.basedir}/build.xml -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
         </exec>
         <!-- eliminate the possiblity of empty but existing error output -->
         <property name="test.failed" value=""/>
@@ -24,17 +24,6 @@
         <antcall target="destroy-vagrant-box-on-error" />
         <!-- tell them about any failures we might encountered -->
         <fail if="fatal-error.occured" message="The performance test failed with message '${fatal-error.occured}', see log above." />
-    </target>
-
-    <!-- ==================================================================== -->
-    <!-- Tests if the jmeter testplan configured against the example app      -->
-    <!-- does run without any errors                                          -->
-    <!-- ==================================================================== -->
-    <target name="measure-jmeter-example-testplan">
-        <!-- test if the testplan runs through -->
-        <exec executable="${jmeter.vagrant.basedir}/${jmeter.package.name}/bin/jmeter" failonerror="true">
-            <arg line="-n -t ${jmeter.example-test.path}/example-testplan.jmx -l ${vagrant-reports.dir}/performance-example-testplan.jtl"/>
-        </exec>
     </target>
 
 </project>

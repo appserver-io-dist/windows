@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="appserver-io-dist/windows" default="build" basedir=".">
+<project name="appserver-io-dist/windows" default="dependencies-init" basedir=".">
 
     <!-- ==================================================================== -->
     <!-- Load the environment variables into our properties                   -->
@@ -23,13 +23,13 @@
     <!-- ==================================================================== -->
     <!-- Create some basic properties which we need for further processing.   -->
     <!-- ==================================================================== -->
-    <property name="src.dir" value="${basedir}/src" />
-    <property name="lib.dir" value="${basedir}/lib" />
-    <property name="target.dir" value="${basedir}/target" />
-    <property name="build.dir" value="${basedir}/build" />
-    <property name="tests.dir" value="${basedir}/tests" />
-    <property name="temp.dir" value="${basedir}/tmp" />
-    <property name="reports.dir" value="${basedir}/reports" />
+    <property name="src.dir" value="${work.dir}src" />
+    <property name="lib.dir" value="${work.dir}lib" />
+    <property name="target.dir" value="${work.dir}target" />
+    <property name="build.dir" value="${work.dir}build" />
+    <property name="tests.dir" value="${work.dir}tests" />
+    <property name="temp.dir" value="${work.dir}tmp" />
+    <property name="reports.dir" value="${work.dir}reports" />
 
     <!-- ==================================================================== -->
     <!-- Initialize the library specific properties                           -->
@@ -46,7 +46,7 @@
     <!-- ==================================================================== -->
     <!-- Import the local tests/*files                                        -->
     <!-- ==================================================================== -->
-    <import file="tests/test.xml"/>
+    <import file="${basedir}/tests/test.xml"/>
 
     <!-- ==================================================================== -->
     <!-- Import the package build files if they are present                   -->
@@ -103,20 +103,42 @@
     </target>
 
     <!-- ==================================================================== -->
+    <!-- Checks if the package helper libary is present                       -->
+    <!-- ==================================================================== -->
+    <target name="package-library-present">
+        <!-- check for the existence of the most central file of the package library -->
+        <available file="${package.dir}/common.xml" property="package-library.present" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Loads all dependencies needed for the execution of build targets.    -->
+    <!-- Not to be confused with the loading of dependencies needed for the   -->
+    <!-- built packages!                                                      -->
+    <!-- ==================================================================== -->
+    <target name="dependencies-init" depends="package-library-present" unless="package-library.present">
+        <!-- create the target dir -->
+        <mkdir dir="${dependency.dir}" />
+        <!-- clone the latest version of our package library -->
+        <exec dir="${dependency.dir}" executable="git">
+            <arg line="clone ${package.remote-location}" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
     <!-- Check if appserver-io-php/runtime has been downloaded yet            -->
     <!-- ==================================================================== -->
     <target name="check-runtime-present" description="Check if appserver-io-php/runtime has been downloaded yet.">
         <!-- create runtime source package name -->
         <create-package-name 
-            tag="${runtime.version}"
+            tag="${appserver.runtime.version}"
             outputProperty="RUNTIME_SOURCE_PACKAGE_NAME"
             prefix="${build.name.prefix}runtime" 
-            build="${runtime.build}" 
+            build="${appserver.runtime.build}" 
             suffixSeparator="." 
             versionSeparator="_" 
             architecture="${os.architecture}" 
             architectureSeparator="_" 
-            extension="${runtime.package-extension}" />
+            extension="${appserver.runtime.package-extension}" />
         <available file="${lib.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}" property="runtime.present"/>
     </target>
 
@@ -124,7 +146,7 @@
     <!-- Get appserver-io/runtime package by given version number             -->
     <!-- ==================================================================== -->
     <target name="get-runtime" depends="check-runtime-present" unless="runtime.present" description="Get appserver-io/runtime package by given version number.">
-        <get src="${runtime.download.url}/${RUNTIME_SOURCE_PACKAGE_NAME}" dest="${target.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}"/>
+        <get src="${appserver.runtime.url}/${RUNTIME_SOURCE_PACKAGE_NAME}" dest="${target.dir}/${RUNTIME_SOURCE_PACKAGE_NAME}"/>
     </target>
 	
     <!-- ==================================================================== -->
@@ -133,15 +155,15 @@
     <target name="prepare-runtime" depends="prepare" description="Prepares the appserver sources">
         <!-- create runtime source package name -->
         <create-package-name 
-            tag="${runtime.version}"
+            tag="${appserver.runtime.version}"
             outputProperty="RUNTIME_SOURCE_PACKAGE_NAME"
             prefix="${build.name.prefix}runtime" 
-            build="${runtime.build}" 
+            build="${appserver.runtime.build}" 
             suffixSeparator="." 
             versionSeparator="_" 
             architecture="${os.architecture}" 
             architectureSeparator="_" 
-            extension="${runtime.package-extension}" />
+            extension="${appserver.runtime.package-extension}" />
         <!-- download the appserver-io-php/runtime package -->
         <antcall target="get-runtime" />
         <!-- extract the runtime -->
@@ -221,7 +243,7 @@
     <!-- Get the latest versions of the default webapps                       -->
     <!-- ==================================================================== -->
     <target name="get-default-webapps" description="Get the latest versions of the default webapps">
-        <get src="${webapps.download.baseurl}${webapps.name.example}/${webapps.name.example}-${webapps.version.example}.phar" dest="${target.dir}/${webapps.name.example}.phar" usetimestamp="true"/>
+        <get src="${appserver.apps.example.url}" dest="${target.dir}/${appserver.apps.example.name}.phar" usetimestamp="true"/>
     </target>
 
     <!-- ==================================================================== -->
@@ -504,7 +526,7 @@
         <!-- invoke original build target within vagrant box -->
         <exec dir="${temp.dir}" executable="sh" errorproperty="build.failed">
             <arg value="-c" />
-            <arg value='vagrant ssh-config | ssh -F /dev/stdin ${vagrant-box.name} "sudo ant local-build -buildfile ${vagrant.basedir}/build.xml -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
+            <arg value='vagrant ssh-config | ssh -F /dev/stdin -l vagrant ${vagrant-box.name} cmd /c "ant local-build -buildfile ${vagrant.basedir}/build.xml -Dwork.dir=/ -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
         </exec>
         <!-- eliminate the possiblity of empty but existing error output -->
         <property name="build.failed" value=""/>

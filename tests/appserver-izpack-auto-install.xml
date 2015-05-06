@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<AutomatedInstallation langpack="eng">
+<com.izforge.izpack.panels.htmlinfo.HTMLInfoPanel id="UNKNOWN (com.izforge.izpack.panels.htmlinfo.HTMLInfoPanel)"/>
+<com.izforge.izpack.panels.htmllicence.HTMLLicencePanel id="UNKNOWN (com.izforge.izpack.panels.htmllicence.HTMLLicencePanel)"/>
+<com.izforge.izpack.panels.target.TargetPanel id="UNKNOWN (com.izforge.izpack.panels.target.TargetPanel)">
+<installpath>C:\Program Files\appserver</installpath>
+</com.izforge.izpack.panels.target.TargetPanel>
+<com.izforge.izpack.panels.packs.PacksPanel id="UNKNOWN (com.izforge.izpack.panels.packs.PacksPanel)">
+<pack index="0" name="Core Files" selected="true"/>
+<pack index="1" name="Example Application" selected="true"/>
+<pack index="2" name="Microsoft Visual C++ 2010 Redistributable Package (x86)" selected="false"/>
+</com.izforge.izpack.panels.packs.PacksPanel>
+<com.izforge.izpack.panels.install.InstallPanel id="UNKNOWN (com.izforge.izpack.panels.install.InstallPanel)"/>
+<com.izforge.izpack.panels.process.ProcessPanel id="UNKNOWN (com.izforge.izpack.panels.process.ProcessPanel)"/>
+<com.izforge.izpack.panels.finish.FinishPanel id="UNKNOWN (com.izforge.izpack.panels.finish.FinishPanel)"/>
+</AutomatedInstallation>
