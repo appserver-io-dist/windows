@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="appserver-io-dist/windows-tests-system" basedir="..">
+
+	<!-- ==================================================================== -->
+    <!-- Runs all available system tests locally                              -->
+    <!-- ==================================================================== -->
+    <target name="local-run-system-tests">
+        <!-- test complete appserver installation -->
+        <antcall target="test-install-appserver" />
+        <!-- test if the services are running -->
+        <antcall target="test-services-running" />
+        <!-- test if there have been errors during startup -->
+        <antcall target="test-errors-log-exists" />
+        <!-- test if the services are reachable -->
+        <antcall target="test-services-reachable" />
+        <!-- test if we can stop the services -->
+        <antcall target="test-services-stop" />
+        <!-- test if we can start the services -->
+        <antcall target="test-services-start" />
+        <!-- test if bundled apps were deployed correctly -->
+        <antcall target="test-bundled-apps-deployed" />
+        <!-- test if the "configtest" command works -->
+        <antcall target="test-configtest-command" />
+        <!-- test if the bundled binaries and executables are present and usable -->
+        <antcall target="test-executable-exist" />
+        <!-- test if the jmeter testplan runs through without errors -->
+        <antcall target="test-jmeter-example-testplan" />
+    </target>
+	
+	<!-- ==================================================================== -->
+    <!-- Tests if the appserver package can be installed correctly              -->
+    <!-- ==================================================================== -->
+    <target name="test-install-appserver">
+        <!-- try to install the appserver -->
+        <antcall target="install-appserver" />
+    </target>
+	
+    <!-- ==================================================================== -->
+    <!-- Runs all available system tests within an expected vagrant box       -->
+    <!-- ==================================================================== -->
+    <target name="vagrant-run-system-tests">
+        <!-- map the vagrant name according to the expected environment -->
+        <property name="vagrant-box.name" value="${vagrant-box.prefix}Test" />
+        <!-- invoke original system tests within vagrant box -->
+        <exec dir="${temp.dir}" executable="sh" errorproperty="test.failed">
+            <arg value="-c" />
+            <arg value='vagrant ssh-config | ssh -F /dev/stdin ${vagrant-box.name} "ant local-run-system-tests -buildfile ${vagrant.basedir}/build.xml -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
+        </exec>
+        <!-- eliminate the possiblity of empty but existing error output -->
+        <property name="test.failed" value=""/>
+        <condition property="fatal-error.occured" value="${test.failed}">
+            <not>
+                <equals arg1="${test.failed}" arg2=""/>
+            </not>
+        </condition>
+        <!-- check for a specific build failure and make an emergency destroy -->
+        <antcall target="destroy-vagrant-box-on-error" />
+        <!-- tell them about any failures we might encountered -->
+        <fail if="fatal-error.occured" message="The system test failed with message '${fatal-error.occured}', see log above." />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the bundled services are currently running                  -->
+    <!-- ==================================================================== -->
+    <target name="test-services-running">
+        <!-- test if the appserver service is running -->
+        <echo message="Test if service 'appserver' is running." />
+        <exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver | grep RUNNING" />
+        </exec>
+        <!-- test if the appserver watcher service is running -->
+        <echo message="Test if service 'appserver-watcher' is running." />
+    	<exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver-watcher | grep RUNNING" />
+        </exec>
+        <!-- test if the appserver php-fpm service is running -->
+        <echo message="Test if service 'appserver-php5-fpm' is running." />
+    	<exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver-watcher | grep RUNNING" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the bundled services are currently in a stopped state       -->
+    <!-- ==================================================================== -->
+    <target name="test-services-stopped">
+        <!-- test if the appserver service is inactive -->
+        <echo message="Test if service 'appserver' is in a stopped state." />
+    	<exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver | grep STOPPED" />
+        </exec>
+        <!-- test if the appserver-watcher service is inactive -->
+        <echo message="Test if service 'appserver-watcher' is in a stopped state." />
+    	<exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver-watcher | grep STOPPED" />
+        </exec>
+        <!-- test if the appserver-php5-fpm service is inactive -->
+        <echo message="Test if service 'appserver-php5-fpm' is in a stopped state." />
+    	<exec dir="${cygwin.bin.dir}" executable="bash" failonerror="true">
+        	<arg value="-c" />
+        	<arg value="sc query appserver-php5-fpm | grep STOPPED" />
+        </exec>
+    </target>
+
+	<!-- ==================================================================== -->
+    <!-- Tests if the additional "configtest" command works correctly         -->
+    <!-- ==================================================================== -->
+    <target name="test-configtest-command">
+        <exec dir="${appserver-base.dir}/php" executable="cmd" failonerror="true">
+        	<arg value="/c" />
+            <arg value="php.exe ../server.php -t" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the bundled services can be started correctly               -->
+    <!-- ==================================================================== -->
+    <target name="test-services-start">
+        <echo message="Test starting service 'appserver'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="start appserver" />
+        </exec>
+        <echo message="Test starting service 'appserver-watcher'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="start appserver-watcher" />
+        </exec>
+        <echo message="Test starting service 'appserver-php5-fpm'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="start appserver-php5-fpm" />
+        </exec>
+
+        <echo message="Starting seems to have gone well, test service states now" />
+
+        <!-- tests if the services are running -->
+        <antcall target="test-services-running" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the bundled services can be stopped correctly               -->
+    <!-- ==================================================================== -->
+    <target name="test-services-stop">
+        <echo message="Test stopping service 'appserver'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="stop appserver" />
+        </exec>
+        <echo message="Test stopping service 'appserver-watcher'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="stop appserver-watcher" />
+        </exec>
+        <echo message="Test stopping service 'appserver-php5-fpm'." />
+        <exec dir="${test.basedir}" executable="net" failonerror="true">
+            <arg line="stop appserver-php5-fpm" />
+        </exec>
+
+        <echo message="Stopping seems to have gone well, test service states now" />
+
+        <!-- tests if the services are running -->
+        <antcall target="test-services-stopped" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the packaged executables exist                              -->
+    <!-- ==================================================================== -->
+    <target name="test-executable-exist">
+        <!-- test if a composer binary and ecexutable is present -->
+        <echo message="Test if a composer binary and ecexutable are present and executable." />
+        <available file="${appserver-base.dir}/php/composer.phar" property="composer-binary.present"/>
+        <fail unless="composer-binary.present" message="The composer binary could not be found."/>
+        <available file="${appserver-base.dir}/php/composer.bat" property="composer-exec.present"/>
+        <fail unless="composer-exec.present" message="The composer executable could not be found."/>
+        <exec executable="${appserver-base.dir}/php/composer.bat" failonerror="true">
+            <arg value="-V"/>
+        </exec>
+        <!-- test if a PHP binary and ecexutable is present -->
+        <echo message="Test if a PHP binary is present and executable." />
+        <available file="${appserver-base.dir}/php/php.exe" property="php-binary.present"/>
+        <fail unless="php-binary.present" message="The PHP binary could not be found."/>
+        <exec executable="${appserver-base.dir}/php/php.exe" failonerror="true">
+            <arg value="--version"/>
+        </exec>
+        <!-- test if a PHAR binary and ecexutable is present -->
+        <echo message="Test if a PHAR binary and ecexutable are present and executable." />
+        <available file="${appserver-base.dir}/php/pharcommand.phar" property="phar-binary.present"/>
+        <fail unless="phar-binary.present" message="The PHAR binary could not be found."/>
+        <available file="${appserver-base.dir}/php/phar.phar.bat" property="phar-exec.present"/>
+        <fail unless="phar-exec.present" message="The PHAR executable could not be found."/>
+        <exec executable="${appserver-base.dir}/php/phar.phar.bat" failonerror="true">
+            <arg value="version"/>
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the jmeter testplan configured against the example app      -->
+    <!-- does run without any errors                                          -->
+    <!-- ==================================================================== -->
+    <target name="test-jmeter-example-testplan">
+        <!-- test if the testplan runs through -->
+        <exec executable="${jmeter.vagrant.basedir}/${jmeter.package.name}/bin/jmeter.bat" failonerror="true" outputproperty="jmeter.example-test.output">
+            <arg line="-n -t '${jmeter.example-test.path}/example-testplan.jmx' -l '${vagrant-reports.dir}/system-example-testplan.jtl' -Jon_error=stoptestnow -Jloop_count=${jmeter.example.loop-count}"/>
+        </exec>
+        <echo message="${jmeter.example-test.output}" />
+        <!-- parse the produced output and fail if it isn't what we expect -->
+        <parse-jmeter-output output="${jmeter.example-test.output}"/>
+        <fail if="JMETER_HAS_ERRORS" message="Jmeter tests exited with errors. See also log at ${vagrant-reports.dir}" />
+    </target>
+
+</project>
