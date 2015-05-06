@@ -94,8 +94,8 @@
             <singlefile src="appserver/php/icutest51.dll" target="${INSTALL_PATH}/php/icutest51.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/icuuc51.dll" target="${INSTALL_PATH}/php/icuuc51.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/libeay32.dll" target="${INSTALL_PATH}/php/libeay32.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/libenchant_ispell.dll" target="${INSTALL_PATH}/php/libenchant_ispell.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/libenchant_myspell.dll" target="${INSTALL_PATH}/php/libenchant_myspell.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/lib/enchant/libenchant_ispell.dll" target="${INSTALL_PATH}/php/lib/enchant/libenchant_ispell.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/lib/enchant/libenchant_myspell.dll" target="${INSTALL_PATH}/php/lib/enchant/libenchant_myspell.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/libenchant.dll" target="${INSTALL_PATH}/php/libenchant.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/libpq.dll" target="${INSTALL_PATH}/php/libpq.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/libsasl.dll" target="${INSTALL_PATH}/php/libsasl.dll" override="true" blockable="auto" />
