@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="appserver-io-dist/windows-tests" basedir=".." default="prepare-test-environment">
+
+    <!-- Read in tests property files -->
+    <property file="${basedir}/tests/tests.properties"/>
+    <property file="${basedir}/tests/tests.default.properties"/>
+
+    <!-- ==================================================================== -->
+    <!-- Import the tests/*.xml files                                           -->
+    <!-- ==================================================================== -->
+    <import file="system.xml"/>
+    <import file="performance.xml"/>
+
+    <!-- ==================================================================== -->
+    <!-- Will try to install the dist package                                 -->
+    <!-- ==================================================================== -->
+    <target name="install-appserver-dist">
+        <!-- try to install the appserver dist package -->
+        <exec dir="${test.basedir}" executable="bash" failonerror="true">
+            <arg value="-c" />
+            <arg value="yum -y install ${vagrant-build.dir}/${build.name.prefix}dist-*.${os.version.prefix}${target-os.version}.${os.architecture}.rpm" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Will try to install the runtime package                              -->
+    <!-- ==================================================================== -->
+    <target name="install-appserver-runtime">
+        <!-- try to install the appserver runtime -->
+        <exec dir="${test.basedir}" executable="bash" failonerror="true">
+            <arg value="-c" />
+            <arg value="yum -y install ${vagrant-build.dir}/${build.name.prefix}runtime-${appserver.runtime.version}-${appserver.runtime.build}.${os.version.prefix}${target-os.version}.${os.architecture}.rpm" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Will prepare the environment to run a testing vagrant box in         -->
+    <!-- ==================================================================== -->
+    <target name="prepare-test-environment" depends="prepare, clean-reports">
+        <copy todir="${temp.dir}" failonerror="true">
+            <fileset dir="${basedir}">
+                <include name="build.*"/>
+                <include name="tests/*"/>
+                <include name="${codepool}/**"/>
+            </fileset>
+        </copy>
+        <copy todir="${temp.dir}" failonerror="true">
+            <fileset dir="${basedir}">
+                <include name="Vagrantfile"/>
+            </fileset>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+        <!-- prepare a tmp dir for work within the VM -->
+        <mkdir dir="${temp.dir}/tmp" />
+    </target>
+
+    <!-- ==================================================================== -->
+    <!-- Tests if the runtime package has been installed                      -->
+    <!-- ==================================================================== -->
+    <target name="test-runtime-installed">
+        <available file="${appserver-base.dir}/bin/php" property="appserver.runtime.installed"/>
+    </target>
+
+</project>
