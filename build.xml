@@ -370,19 +370,6 @@
     </target>
 
     <!-- ==================================================================== -->
-    <!-- Copies any built package to the snapshot hosting server.             -->
-    <!-- ==================================================================== -->
-    <target name="copy-to-hub" description="Copies any built package to the snapshot hosting server.">
-        <echo message="Now try to upload build artefacts to ${build.server.host}:${build.server.upload-path}"/>
-        <scp todir="${build.server.user}@${build.server.host}:${build.server.upload-path}" keyfile="${user.home}/.ssh/id_rsa" >
-            <fileset dir="${build.dir}" >
-                <include name="*.${build.name.ext}"/>
-                <include name="*.${extractor.name.ext}"/>
-            </fileset>
-        </scp>
-    </target>
-
-    <!-- ==================================================================== -->
     <!-- Extracts version and suffix from a tag                               -->
     <!-- ==================================================================== -->
     <scriptdef name="create-version-name" language="javascript">
