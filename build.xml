@@ -526,7 +526,7 @@
         <!-- invoke original build target within vagrant box -->
         <exec dir="${temp.dir}" executable="sh" errorproperty="build.failed">
             <arg value="-c" />
-            <arg value='vagrant ssh-config | ssh -F /dev/stdin -l vagrant ${vagrant-box.name} cmd /c "ant local-build -buildfile ${vagrant.basedir}/build.xml -Dwork.dir=/ -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build}"' />
+            <arg value='vagrant ssh-config | ssh -F /dev/stdin -l vagrant ${vagrant-box.name} cmd /c "ant local-build -buildfile ${vagrant.basedir}/build.xml -Dwork.dir=/ -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build} -Dappserver.src.version=${appserver.src.version}"' />
         </exec>
         <!-- eliminate the possiblity of empty but existing error output -->
         <property name="build.failed" value=""/>
