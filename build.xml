@@ -555,7 +555,7 @@
     <!-- ==================================================================== -->
     <target name="local-build" description="Creates the IzPack installer JAR file.">
         <antcall target="prepare-build" />
-        <antcall target="pack-dist"/>
+        <antcall target="create-exe"/>
     </target>
 
 </project>
