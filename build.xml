@@ -125,6 +125,16 @@
     </target>
 
     <!-- ==================================================================== -->
+    <!-- Installs composer in target directory                                -->
+    <!-- ==================================================================== -->
+    <target name="install-composer">
+        <get src="http://getcomposer.org/installer" dest="${temp.dir}/composer-installer" />
+        <exec dir="${temp.dir}" executable="${target.dir}/appserver/php/php">
+            <arg value="composer-installer" />
+        </exec>
+    </target>
+
+    <!-- ==================================================================== -->
     <!-- Check if appserver-io-php/runtime has been downloaded yet            -->
     <!-- ==================================================================== -->
     <target name="check-runtime-present" description="Check if appserver-io-php/runtime has been downloaded yet.">
@@ -185,7 +195,9 @@
     <!-- ==================================================================== -->
     <!-- Prepares the appserver sources                                       -->
     <!-- ==================================================================== -->
-    <target name="prepare-sources" depends="prepare-runtime" description="Prepares the appserver sources">
+    <target name="prepare-appserver-dist" depends="prepare-runtime" description="Prepares the appserver sources">
+        <!-- install local composer -->
+        <antcall target="install-composer" />
         <exec dir="${target.dir}" executable="git">
             <arg line="clone https://${github.oauth.token}:x-oauth-basic@github.com/${appserver.src.repo} appserver-src" />
         </exec>
@@ -195,7 +207,7 @@
         </exec>
         <property name="appserver.src.version" value="${appserver.src.git.tag}" />
         <!-- checkout lastest tag version -->
-        <echo message="Checkout lastest tag version ${appserver.src.version}" />
+        <echo message="Checkout latest tag version ${appserver.src.version}" />
         <exec dir="${target.dir}/appserver-src" executable="git">
             <arg line="checkout -q ${appserver.src.version}" />
         </exec>
@@ -216,11 +228,11 @@
         <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${VERSION_NAME}" />
         <!-- also add the github oauth token to the local installation -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${target.dir}/appserver/php/composer.phar config github-oauth.github.com ${github.oauth.token}"/>
+            <arg line="${temp.dir}/composer.phar config github-oauth.github.com ${github.oauth.token}"/>
         </exec>
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${target.dir}/appserver/php/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
+            <arg line="${temp.dir}/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
         <antcall target="deploy-default-webapps" />
@@ -260,7 +272,7 @@
     <!-- ==================================================================== -->
     <!-- Creates the IzPack installer JAR file for the distribution           -->
     <!-- ==================================================================== -->
-    <target name="pack-dist" depends="prepare-sources" description="Creates the IzPack installer JAR file for the distribution.">
+    <target name="pack-dist" depends="prepare-appserver-dist" description="Creates the IzPack installer JAR file for the distribution.">
         <!-- create distribution package name -->
         <create-package-name 
             tag="${appserver.src.version}"
