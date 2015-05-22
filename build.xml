@@ -227,12 +227,12 @@
         <!-- create the file with the version number -->
         <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${VERSION_NAME}" />
         <!-- also add the github oauth token to the local installation -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${temp.dir}/composer.phar config github-oauth.github.com ${github.oauth.token}"/>
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/composer.bat">
+            <arg line="config github-oauth.github.com ${github.oauth.token}"/>
         </exec>
         <!-- install the libraries -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${temp.dir}/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/composer.bat">
+            <arg line="install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
         <antcall target="deploy-default-webapps" />
