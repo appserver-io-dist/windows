@@ -232,7 +232,7 @@
         </exec>
         <!-- install the libraries -->
         <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/composer.bat">
-            <arg line="install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
+            <arg line="install -vvv --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
         <antcall target="deploy-default-webapps" />
