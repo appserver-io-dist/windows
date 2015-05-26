@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="appserver-io-dist/windows-tests-integration" basedir=".." default="run-integration-tests">
+<project name="appserver-io-dist/windows-tests-integration" basedir=".." default="local-run-integration-tests">
 
     <!-- ==================================================================== -->
     <!-- Runs all available integration tests using behat                     -->
     <!-- ==================================================================== -->
-    <target name="local-run-integration-tests" depends="ensure-behat-present, ensure-dist-installed, prepare-reports">
+    <target name="local-run-integration-tests" depends="prepare-reports">
+        <!-- Prepare the environment to run tests in -->
+        <antcall target="ensure-behat-present" />
+        <antcall target="ensure-dist-installed" />
         <!-- invoke original integration tests within vagrant box -->
         <exec dir="${package.basedir}/tests/integration" executable="${appserver-base.dir}/php/php" failonerror="true">
             <arg line="${behat.bin.dir}/behat.phar --format=progress" />
