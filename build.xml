@@ -201,12 +201,12 @@
         <exec dir="${target.dir}" executable="git">
             <arg line="clone https://${github.oauth.token}:x-oauth-basic@github.com/${appserver.src.repo} appserver-src" />
         </exec>
-        <!-- get lastest tag version -->
+        <!-- get latest tag version -->
         <exec dir="${target.dir}/appserver-src" executable="git" outputProperty="appserver.src.git.tag">
             <arg line="describe --abbrev=0 --tags" />
         </exec>
         <property name="appserver.src.version" value="${appserver.src.git.tag}" />
-        <!-- checkout lastest tag version -->
+        <!-- checkout latest tag version -->
         <echo message="Checkout latest tag version ${appserver.src.version}" />
         <exec dir="${target.dir}/appserver-src" executable="git">
             <arg line="checkout -q ${appserver.src.version}" />
@@ -227,12 +227,12 @@
         <!-- create the file with the version number -->
         <echo file="${target.dir}/appserver/etc/appserver/.release-version" message="${VERSION_NAME}" />
         <!-- also add the github oauth token to the local installation -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${temp.dir}/composer.phar config github-oauth.github.com ${github.oauth.token}"/>
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/composer.bat">
+            <arg line="config github-oauth.github.com ${github.oauth.token}"/>
         </exec>
         <!-- install the libraries -->
-        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/php">
-            <arg line="${temp.dir}/composer.phar install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
+        <exec dir="${target.dir}/appserver" executable="${target.dir}/appserver/php/composer.bat">
+            <arg line="install --prefer-dist --no-dev --no-interaction --ignore-platform-reqs --optimize-autoloader" />
         </exec>
         <!-- deploy the applications -->
         <antcall target="deploy-default-webapps" />
@@ -535,7 +535,7 @@
         <!-- invoke original build target within vagrant box -->
         <exec dir="${temp.dir}" executable="sh" errorproperty="build.failed">
             <arg value="-c" />
-            <arg value='vagrant ssh-config | ssh -F /dev/stdin -l vagrant ${vagrant-box.name} cmd /c "ant local-build -buildfile ${vagrant.basedir}/build.xml -Dwork.dir=/ -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build} -Dappserver.src.version=${appserver.src.version}"' />
+            <arg value="vagrant ssh-config | ssh -F /dev/stdin -l vagrant ${vagrant-box.name} 'ant local-build -buildfile ${vagrant.basedir}/build.xml -Dwork.dir=/ -Dgithub.oauth.token=${github.oauth.token} -Dbuild.number=${build.number} -Dtarget-os.version=${target-os.version} -Dappserver.runtime.version=${appserver.runtime.version} -Dappserver.runtime.build=${appserver.runtime.build} -Dappserver.src.version=${appserver.src.version}'" />
         </exec>
         <!-- eliminate the possiblity of empty but existing error output -->
         <property name="build.failed" value=""/>
@@ -555,7 +555,7 @@
     <!-- ==================================================================== -->
     <target name="local-build" description="Creates the IzPack installer JAR file.">
         <antcall target="prepare-build" />
-        <antcall target="pack-dist"/>
+        <antcall target="create-exe"/>
     </target>
 
 </project>
