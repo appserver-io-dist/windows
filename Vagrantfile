@@ -8,8 +8,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Give the box 3GB or RAM and 2 cores
   config.vm.provider 'virtualbox' do |v|
-    v.cpus = 2
-    v.memory = 3072
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ["modifyvm", :id, "--cpus", "2"]
+    vb.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
   end
 
   # Configure the actual windows machine
