@@ -17,7 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "${vagrant-box.name}" do |windows|
     windows.vm.guest = :windows
     windows.vm.box = "${vagrant-box.name}"
-    windows.vm.box_url = "${vagrant-box.baseurl}"
+    windows.vm.box_url = "${vagrant-box.baseurl}/${vagrant-box.name}.box"
 
     # Set up WinRM communication
     windows.vm.communicator = 'winrm'
