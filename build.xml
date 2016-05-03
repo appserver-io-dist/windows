@@ -255,6 +255,7 @@
     <!-- Get the latest versions of the default webapps                       -->
     <!-- ==================================================================== -->
     <target name="get-default-webapps" description="Get the latest versions of the default webapps">
+        <get src="${appserver.apps.api.url}" dest="${target.dir}/${appserver.apps.api.name}.phar" usetimestamp="true"/>
         <get src="${appserver.apps.example.url}" dest="${target.dir}/${appserver.apps.example.name}.phar" usetimestamp="true"/>
     </target>
 
