@@ -17,14 +17,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "${vagrant-box.name}" do |windows|
     windows.vm.guest = :windows
     windows.vm.box = "${vagrant-box.name}"
-    windows.vm.box_url = "file://~/Downloads/${vagrant-box.name}.box"
+    windows.vm.box_url = "${vagrant-box.baseurl}/${vagrant-box.name}.box"
 
     # Set up WinRM communication
     windows.vm.communicator = 'winrm'
     windows.winrm.username = "IEUser"
   	windows.winrm.password = "Passw0rd!"
     windows.vm.network 'forwarded_port', host: 3389, guest: 3389, auto_correct: true
-    
+
     # Share the folders needed for our build
     windows.vm.synced_folder "${build.dir}", "${vagrant-build.dir}"
     windows.vm.synced_folder "${reports.dir}", "${vagrant-reports.dir}"
