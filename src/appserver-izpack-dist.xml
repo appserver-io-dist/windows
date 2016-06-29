@@ -86,14 +86,15 @@
             <!-- The php/*.dll files are maybe in use when services are running -->
             <singlefile src="appserver/php/glib-2.dll" target="${INSTALL_PATH}/php/glib-2.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/gmodule-2.dll" target="${INSTALL_PATH}/php/gmodule-2.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icudt56.dll" target="${INSTALL_PATH}/php/icudt56.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icuin56.dll" target="${INSTALL_PATH}/php/icuin56.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icuio56.dll" target="${INSTALL_PATH}/php/icuio56.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icule56.dll" target="${INSTALL_PATH}/php/icule56.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/iculx56.dll" target="${INSTALL_PATH}/php/iculx56.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icutest55.dll" target="${INSTALL_PATH}/php/icutest55.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icutu55.dll" target="${INSTALL_PATH}/php/icutu55.dll" override="true" blockable="auto" />
-            <singlefile src="appserver/php/icuuc56.dll" target="${INSTALL_PATH}/php/icuuc56.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icudt57.dll" target="${INSTALL_PATH}/php/icudt57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuin57.dll" target="${INSTALL_PATH}/php/icuin57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuio57.dll" target="${INSTALL_PATH}/php/icuio57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icule57.dll" target="${INSTALL_PATH}/php/icule57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/iculx57.dll" target="${INSTALL_PATH}/php/iculx57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icutest57.dll" target="${INSTALL_PATH}/php/icutest57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icutu57.dll" target="${INSTALL_PATH}/php/icutu57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icutu57.dll" target="${INSTALL_PATH}/php/icutu57.dll" override="true" blockable="auto" />
+            <singlefile src="appserver/php/icuuc57.dll" target="${INSTALL_PATH}/php/icuuc57.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/libeay32.dll" target="${INSTALL_PATH}/php/libeay32.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/lib/enchant/libenchant_ispell.dll" target="${INSTALL_PATH}/php/libenchant_ispell.dll" override="true" blockable="auto" />
             <singlefile src="appserver/php/lib/enchant/libenchant_myspell.dll" target="${INSTALL_PATH}/php/libenchant_myspell.dll" override="true" blockable="auto" />
